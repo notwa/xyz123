@@ -70,11 +70,11 @@ uint list_size(list_t* list)
 list_t* list_copy(list_t* list)
 {
 	list_t* copy = new_list();
-	copy->size = list->size;
-
 	item_t* old = list->first;
 	item_t* new;
 	item_t* previous = NULL;
+
+	copy->size = list->size;
 	while (old != NULL) {
 		new = ALLOC(item_t);
 		new->previous = previous;
@@ -252,11 +252,15 @@ void list_push_before(list_t* list, void* contents)
 	item_t* previous_item;
 	if (contents == NULL)
 		return;
-	if (list->cursor == NULL)
-		return list_push_back(list, contents);
+	if (list->cursor == NULL) {
+		list_push_back(list, contents);
+		return;
+	}
 	previous_item = list->cursor->next;
-	if (previous_item == NULL)
-		return list_push_front(list, contents);
+	if (previous_item == NULL) {
+		list_push_front(list, contents);
+		return;
+	}
 
 	item = ALLOC(item_t);
 	item->next = list->cursor;
@@ -272,11 +276,15 @@ void list_push_after(list_t* list, void* contents)
 	item_t* next_item;
 	if (contents == NULL)
 		return;
-	if (list->cursor == NULL)
-		return list_push_front(list, contents);
+	if (list->cursor == NULL) {
+		list_push_front(list, contents);
+		return;
+	}
 	next_item = list->cursor->next;
-	if (next_item == NULL)
-		return list_push_back(list, contents);
+	if (next_item == NULL) {
+		list_push_back(list, contents);
+		return;
+	}
 
 	item = ALLOC(item_t);
 	item->previous = list->cursor;
