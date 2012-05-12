@@ -90,11 +90,11 @@ void* list_inspect(list_t*);
 
 /** Adds the pointer before the cursor.
  *  Note that calling retract afterwards will return this pointer. */
-void* list_push_before(list_t*, void*);
+void list_push_before(list_t*, void*);
 
 /** Adds the pointer after the cursor.
  *  Note that calling iterate afterwards will return this pointer. */
-void* list_push_after(list_t*, void*);
+void list_push_after(list_t*, void*);
 
 /** Returns and replaces the current pointer. */
 void* list_replace(list_t*, void*);
