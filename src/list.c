@@ -180,6 +180,8 @@ void* list_pop_front(list_t* list)
 	list->first = item->next;
 	if (list->first != NULL)
 		list->first->previous = NULL;
+	else
+		list->last = NULL;
 	list->size--;
 
 	if (list->cursor == item)
@@ -200,6 +202,8 @@ void* list_pop_back(list_t* list)
 	list->last = item->previous;
 	if (list->last != NULL)
 		list->last->next = NULL;
+	else
+		list->first = NULL;
 	list->size--;
 
 	if (list->cursor == item)
