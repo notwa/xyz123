@@ -15,7 +15,6 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-*/
 #ifndef LIST_H_
 #define LIST_H_
 
@@ -50,16 +49,28 @@ list_t* list_copy(list_t*);
 /** Copies the list, but keeps its item references. Returns the new list. */
 list_t* list_weak_copy(list_t*);
 
+/** Reverses the list. */
+void list_reverse(list_t*);
+
 /* Stack-like Methods */
 
-/** Appends the pointer onto the end of the list. */
-void list_push(list_t*, void*);
+/** Appends the pointer to the start. */
+void list_push_front(list_t*, void*);
 
-/** Returns and removes the last pointer on the list. */
-void* list_pop(list_t*);
+/** Appends the pointer to the end. */
+void list_push_back(list_t*, void*);
+
+/** Returns and removes the first pointer. */
+void* list_pop_front(list_t*);
+
+/** Returns and removes the last pointer. */
+void* list_pop_back(list_t*);
+
+/** Returns the first pointer without removing it. */
+void* list_peek_front(list_t*);
 
 /** Returns the last pointer without removing it. */
-void* list_peek(list_t*);
+void* list_peek_back(list_t*);
 
 /* Iteration Methods */
 

@@ -42,7 +42,7 @@ void args_push_switch(args_switch_t* switch_)
 {
 	if (switches == NULL)
 		switches = new_list();
-	list_push(switches, switch_);
+	list_push_back(switches, switch_);
 }
 
 static char is_blank(char* s)
@@ -94,7 +94,7 @@ void args_print_help()
 
 static void check_bounds()
 {
-	if (list_peek(args) == NULL) {
+	if (list_peek_front(args) == NULL) {
 		args_print_usage();
 		/* FIXME
 		if (current_arg - 1 == previous_switch)
@@ -111,7 +111,7 @@ char* args_poll()
 {
 	char* arg = NULL;
 	check_bounds();
-	arg = list_pop(args);
+	arg = list_pop_front(args);
 	arg += switch_subpos * sizeof(char);
 	switch_subpos = 0;
 	return arg;
@@ -122,9 +122,9 @@ static char* poll_for_switch()
 	static char short_switch[3] = "--";
 	char* arg = NULL;
 	check_bounds();
-	arg = list_peek(args);
+	arg = list_peek_front(args);
 	if (!is_shortname(arg)) {
-		list_pop(args);
+		list_pop_front(args);
 		return arg;
 	}
 	if (switch_subpos == 0)
@@ -133,7 +133,7 @@ static char* poll_for_switch()
 	switch_subpos++;
 	if (arg[switch_subpos] == '\0') {
 		switch_subpos = 0;
-		list_pop(args);
+		list_pop_front(args);
 	}
 	return short_switch;
 }
@@ -162,7 +162,7 @@ static void fill_args(int argc, char* argv[])
 {
 	int i;
 	for (i = 0; i < argc; i++)
-		list_push(args, argv[i]);
+		list_push_back(args, argv[i]);
 }
 
 void args_handle(int argc, char* argv[])
@@ -172,7 +172,7 @@ void args_handle(int argc, char* argv[])
 
 	args_program_name = args_poll();
 
-	while (list_peek(args) != NULL) {
+	while (list_peek_front(args) != NULL) {
 		char* name;
 		int index;
 

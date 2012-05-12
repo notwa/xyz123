@@ -42,7 +42,7 @@ input's path with the appropriate extension.");
 
 static void set_input(char* arg)
 {
-	list_push(inputs, arg);
+	list_push_back(inputs, arg);
 }
 
 static void set_output(char* arg)
@@ -140,10 +140,10 @@ static void convert_inputs()
 		exit(1);
 	}
 
-	input_path = (char*) list_pop(inputs);
+	input_path = (char*) list_pop_front(inputs);
 	while (input_path != NULL) {
 		convert(input_path);
-		input_path = (char*) list_pop(inputs);
+		input_path = (char*) list_pop_front(inputs);
 	}
 	free(inputs);
 }

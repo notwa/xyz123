@@ -53,13 +53,13 @@ void free_list(list_t* q)
 void list_clear(list_t* q)
 {
 	while (q->first != NULL)
-		list_pop(q);
+		list_pop_front(q);
 }
 
 void list_free_contents(list_t* q)
 {
 	while (q->first != NULL)
-		free(list_pop(q));
+		free(list_pop_front(q));
 }
 
 uint list_size(list_t* q)
@@ -89,7 +89,7 @@ list_t* list_weak_copy(list_t* old)
 	return copy;
 }
 
-void list_push(list_t* q, void* contents)
+void list_push_back(list_t* q, void* contents)
 {
 	item_t* item;
 	if (contents == NULL)
@@ -108,7 +108,7 @@ void list_push(list_t* q, void* contents)
 	q->size++;
 }
 
-void* list_pop(list_t* q)
+void* list_pop_front(list_t* q)
 {
 	void* contents;
 
@@ -128,7 +128,7 @@ void* list_pop(list_t* q)
 	return contents;
 }
 
-void* list_peek(list_t* q)
+void* list_peek_front(list_t* q)
 {
 	item_t* item = q->first;
 	return (item) ? item->contents : NULL;
