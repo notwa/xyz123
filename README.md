@@ -11,11 +11,11 @@ TODO
 - Write/rewrite comments
 - Add BMP to xyz conversion
 - Write a proper readme
-- Complete list implementation
+- Test list implementation
 
 Notes
 -----
 
-The name "xyz123" pokes fun at the genericness of the name of the
-format it works with - not like I could come up with anything better.
+The name "xyz123" pokes fun at the genericness of the name of the format it
+works with. Mind you, I probably couldn't come up with anything better.
 
