@@ -8,10 +8,10 @@ TODO
 
 - Refactor
 - Take a bath (asserts, TODOs and FIXMEs)
-- Refactor (again)
 - Write/rewrite comments
-- BMP to xyz conversion
+- Add BMP to xyz conversion
 - Write a proper readme
+- Complete list implementation
 
 Notes
 -----
