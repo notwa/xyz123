@@ -2,8 +2,8 @@ NAME = xyz123
 FILES = main args xyz buffs easyflate bmp macros list
 
 CC ?= gcc
-CFLAGS += -ansi -pedantic -Wall# -O0
-LDFLAGS = -lz# -g
+CFLAGS += -ansi -pedantic -Wall -Werror
+LDFLAGS = -lz
 
 PREFIX ?= /usr/local
 PROGRAM = bin/$(NAME)
@@ -12,6 +12,11 @@ OBJS = $(FILES:%=bin/%.o)
 
 .PHONY: all
 all: $(PROGRAM)
+
+.PHONY: debug
+debug: CFLAGS += -O0
+debug: LDFLAGS += -g
+debug: $(PROGRAM)
 
 $(PROGRAM): $(OBJS)
 	$(CC) -o $@ $(LDFLAGS) $(OBJS)
