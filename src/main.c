@@ -152,8 +152,9 @@ static void convert(char* input_path)
 		if ((status = xyz_read(&image, input.stream)))
 			fprintf(stderr, "Error reading %s as xyz: %i\n",
 				input_path, status);
-		else
-			bmp_write(&image, output.stream);
+		else if ((status = bmp_write(&image, output.stream)))
+			fprintf(stderr, "Error writing %s as bmp: %i\n",
+				output_path, status);
 	}/* else {
 		bmp_read(&image, input.stream);
 		xyz_write(&image, output.stream);
@@ -162,7 +163,8 @@ static void convert(char* input_path)
 	buffs_close(&input);
 	buffs_close(&output);
 
-	puts(output_path);
+	if (status == 0)
+		puts(output_path);
 
 	if (desired_output_path == NULL)
 		free(output_path);

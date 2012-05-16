@@ -25,8 +25,7 @@ enum {
 	FULL_SIZE = 14 + 40
 };
 
-typedef struct bmp_header_s
-{
+typedef struct bmp_header_s {
 	uint32_t filesize;
 	uint32_t creator;
 	uint32_t data_ptr;
@@ -81,16 +80,14 @@ static void write_pixel(image_t* image, FILE* output, int i)
 uint bmp_write(image_t* image, FILE* output)
 {
 	int x, y;
-
+	int status = BMP_NO_ERROR;
 	write_bmp_header(image, output);
 	write_dib_header(image, output);
-
 	for (y = image->height - 1; y >= 0; y--) {
 		for (x = 0; x < image->width; x++) {
 			write_pixel(image, output, x + y * image->width);
 		}
 	}
-
-	return 0;
+	return status;
 }
 

@@ -21,6 +21,12 @@
 #include "macros.h"
 #include "image.h"
 
+enum bmp_errors {
+	BMP_NO_ERROR,
+	BMP_FORMATTING_ERROR,
+	BMP_EOF_ERROR
+};
+
 /* returns non-zero on error */
 uint bmp_write(image_t* image, FILE* output);
 

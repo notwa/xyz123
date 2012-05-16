@@ -20,7 +20,19 @@
 
 #include "macros.h"
 
-uint easy_inflate(uchar* input, uint input_length, uchar** output);
+enum ez_errors {
+	EZ_NO_ERROR,
+	EZ_ERRNO,
+	EZ_STREAM_ERROR,
+	EZ_DATA_ERROR,
+	EZ_MEMORY_ERROR,
+	EZ_BUFFER_ERROR,
+	EZ_VERSION_ERROR
+};
+
+/* returns non-zero on error */
+int ez_inflate(uchar* input, uint input_length,
+		uchar** output, uint* output_length);
 
 #endif
 

@@ -1,5 +1,5 @@
 #include "xyz.h"
-#include "easyflate.h"
+#include "ezflate.h"
 
 enum {
 	HEADER_SIZE = 8
@@ -24,9 +24,8 @@ static uint decompress(FILE* input, uchar** output, uint* length)
 	compressed = CALLOC(uchar, filesize);
 	fread(compressed, filesize, sizeof(uchar), input);
 
-	/* if (easy_inflate(compressed, filesize, &decompressed, length))
-		return XYZ_ZLIB_ERROR; */
-	*length = easy_inflate(compressed, filesize, &decompressed);
+	if (ez_inflate(compressed, filesize, &decompressed, length))
+		return XYZ_ZLIB_ERROR;
 
 	/* concatenate decompressed data to "full" */
 	full = REALLOC(uchar, full, *length + HEADER_SIZE);
