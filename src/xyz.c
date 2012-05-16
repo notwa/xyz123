@@ -1,16 +1,13 @@
 #include "xyz.h"
 #include "easyflate.h"
 
-#include <assert.h> /* TODO: temporary */
-
 enum {
 	HEADER_SIZE = 8
 };
 
-static uint decompress(FILE* input, uchar** output)
+static uint decompress(FILE* input, uchar** output, uint* length)
 {
 	uint filesize;
-	uint length;
 	uchar* compressed;
 	uchar* decompressed = NULL;
 	uchar* full;
@@ -21,50 +18,59 @@ static uint decompress(FILE* input, uchar** output)
 
 	/* read compressed data */
 	filesize = fsize(input);
-	assert(filesize > 0);
+	if (filesize <= 8)
+		return XYZ_EOF_ERROR;
 	filesize -= HEADER_SIZE;
 	compressed = CALLOC(uchar, filesize);
 	fread(compressed, filesize, sizeof(uchar), input);
 
-	length = easy_inflate(compressed, filesize, &decompressed);
+	/* if (easy_inflate(compressed, filesize, &decompressed, length))
+		return XYZ_ZLIB_ERROR; */
+	*length = easy_inflate(compressed, filesize, &decompressed);
 
 	/* concatenate decompressed data to "full" */
-	full = REALLOC(uchar, full, length + HEADER_SIZE);
-	memcpy(full + HEADER_SIZE, decompressed, length);
+	full = REALLOC(uchar, full, *length + HEADER_SIZE);
+	memcpy(full + HEADER_SIZE, decompressed, *length);
 
 	free(compressed);
 	free(decompressed);
 	*output = full;
-	return length + HEADER_SIZE;
+	return XYZ_NO_ERROR;
 }
 
-static void read_header(image_t* image, uchar* data, uint length)
+static uint read_header(image_t* image, uchar* data, uint length)
 {
 	int i;
 	char id[5];
 
-	assert(length >= HEADER_SIZE);
+	if (length < HEADER_SIZE)
+		return XYZ_EOF_ERROR;
 
 	for (i = 0; i < 4; i++)
 		id[i] = data[i];
 	id[4] = '\0';
-	assert(!strcmp(id, "XYZ1"));
+
+	if (strcmp(id, "XYZ1"))
+		return XYZ_FORMATTING_ERROR;
 
 	image->width = data[4] + (data[5] << 8);
 	image->height = data[6] + (data[7] << 8);
+	return XYZ_NO_ERROR;
 }
 
-static void read_pixels(image_t* image, uchar* data, uint length)
+static uint read_pixels(image_t* image, uchar* data, uint length)
 {
 	int i;
 	int area = image->width * image->height;
 	int palette_size = length - area;
 	int pixel_size = length - palette_size;
 
-	assert(length >= image->width * image->height);
+	if (length < area)
+		return XYZ_EOF_ERROR;
 
 	palette_size = length - area;
-	assert(palette_size % 256 == 0);
+	if (palette_size % 256)
+		return XYZ_FORMATTING_ERROR;
 	image->channels = palette_size / 256;
 
 	image->palette = CALLOC(uint8_t, palette_size);
@@ -74,15 +80,22 @@ static void read_pixels(image_t* image, uchar* data, uint length)
 	image->pixels = CALLOC(uint8_t, length - palette_size);
 	for (i = 0; i < pixel_size; i++)
 		image->pixels[i] = data[i + palette_size];
+	return XYZ_NO_ERROR;
 }
 
 uint xyz_read(image_t* image, FILE* input)
 {
 	uchar* data = NULL;
-	uint length = decompress(input, &data);
-	read_header(image, data, length - HEADER_SIZE);
-	read_pixels(image, data + HEADER_SIZE, length - HEADER_SIZE);
-	free(data);
-	return XYZ_NO_ERROR;
+	uint length;
+	int status = XYZ_NO_ERROR;
+	if (!status)
+		status = decompress(input, &data, &length);
+	if (!status)
+		status = read_header(image, data, length);
+	if (!status)
+		status = read_pixels(image, data + HEADER_SIZE, length);
+	if (data)
+		free(data);
+	return status;
 }
 

@@ -143,16 +143,17 @@ static void convert(char* input_path)
 	image_t image;
 	char is_bmp = check_if_bmp(input_path);
 	char* output_path = generate_path(input_path, is_bmp);
-
-	puts(input_path);
-	puts(output_path);
+	int status;
 
 	buffs_open(&input, input_path, "rb", stdin);
 	buffs_open(&output, output_path, "wb", stdout);
 
 	if (!is_bmp) {
-		xyz_read(&image, input.stream);
-		bmp_write(&image, output.stream);
+		if ((status = xyz_read(&image, input.stream)))
+			fprintf(stderr, "Error reading %s as xyz: %i\n",
+				input_path, status);
+		else
+			bmp_write(&image, output.stream);
 	}/* else {
 		bmp_read(&image, input.stream);
 		xyz_write(&image, output.stream);
@@ -160,6 +161,8 @@ static void convert(char* input_path)
 
 	buffs_close(&input);
 	buffs_close(&output);
+
+	puts(output_path);
 
 	if (desired_output_path == NULL)
 		free(output_path);

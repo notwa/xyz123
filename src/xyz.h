@@ -23,7 +23,9 @@
 
 enum xyz_errors {
 	XYZ_NO_ERROR,
-	XYZ_FORMATTING_ERROR
+	XYZ_FORMATTING_ERROR,
+	XYZ_ZLIB_ERROR,
+	XYZ_EOF_ERROR
 };
 
 /* returns non-zero on error */
