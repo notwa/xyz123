@@ -2,9 +2,6 @@
 #include "easyflate.h"
 
 #include <assert.h> /* TODO: temporary */
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 
 enum {
 	HEADER_SIZE = 8

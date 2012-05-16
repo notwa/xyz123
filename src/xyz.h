@@ -21,8 +21,6 @@
 #include "macros.h"
 #include "image.h"
 
-#include <stdio.h>
-
 enum xyz_errors {
 	XYZ_NO_ERROR,
 	XYZ_FORMATTING_ERROR
