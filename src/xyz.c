@@ -20,7 +20,9 @@ static uint decompress(FILE* input, uchar** output)
 	fread(full, HEADER_SIZE, sizeof(uchar), input);
 
 	/* read compressed data */
-	filesize = fsize(input) - HEADER_SIZE;
+	filesize = fsize(input);
+	assert(filesize > 0);
+	filesize -= HEADER_SIZE;
 	compressed = CALLOC(uchar, filesize);
 	fread(compressed, filesize, sizeof(uchar), input);
 

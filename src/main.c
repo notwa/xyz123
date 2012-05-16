@@ -21,6 +21,7 @@ static buffs_t input, output;
 
 static list_t* inputs = NULL;
 static char* desired_output_path = NULL;
+static char force_bmp = 0;
 
 void args_print_info()
 {
@@ -29,7 +30,8 @@ void args_print_info()
 
 void args_print_usage()
 {
-	printf("Usage: %s FILE [FILES...] [-o FILE]\n", args_program_name);
+	printf("Usage: %s FILE [FILES...] [-b] [-o FILE]\n",
+		args_program_name);
 }
 
 void args_print_help_suffix()
@@ -50,23 +52,32 @@ static void set_output(char* arg)
 	desired_output_path = args_poll();
 }
 
+static void set_bmp(char* arg)
+{
+	force_bmp = 1;
+}
+
 args_switch_t h = {
 	'h',"--help","          display this text",
 	args_print_help };
 args_switch_t o = {
 	'o',"--output","FILE    write to FILE as an image",
 	set_output };
+args_switch_t b = {
+	'b',"--bmp","           force inputs to be treated as BMPs",
+	set_bmp };
 
 static void setup_switches()
 {
 	inputs = new_list();
 	args_push_switch(&h);
 	args_push_switch(&o);
+	args_push_switch(&b);
 
 	args_fallback_handler = set_input;
 }
 
-static char* get_last_slash(char* path)
+static char* find_last_slash(char* path)
 {
 	char* fslash = strrchr(path, '/');
 	char* bslash = strrchr(path, '\\');
@@ -77,35 +88,61 @@ static char* get_last_slash(char* path)
 	return (fslash < bslash) ? fslash : bslash;
 }
 
-static void remove_extension(char* path)
+static char* find_dot(char* path)
 {
 	char* dot = strrchr(path, '.');
 	char* slash;
 	if (dot == NULL)
-		return;
-	slash = get_last_slash(path);
+		return NULL;
+	slash = find_last_slash(path);
 	if (dot > slash)
-		*dot = '\0';
+		return dot;
+	return NULL;
 }
 
-static char* generate_path(char* input_path)
+static char check_if_bmp(char* input_path)
 {
-	int length = strlen(input_path);
-	/* allocate with room for ".bmp" */
-	char* path = CALLOC(char, length + 4);
+	char* dot;
+	if (force_bmp)
+		return 1;
+	dot = find_dot(input_path);
+	if (dot == NULL || strlen(dot) < 2)
+		return 0;
+	if (!strcmp(dot + 1, "bmp"))
+		return 1;
+	return 0;
+}
+
+static char* generate_path(char* input_path, char is_bmp)
+{
+	int length;
+	char* path;
+	char* dot;
+
+	if (desired_output_path != NULL)
+		return desired_output_path;
+
+	/* allocate with room for extension */
+	length = strlen(input_path) + 5;
+	path = CALLOC(char, length);
 
 	strcpy(path, input_path);
-	remove_extension(path);
-	strcat(path, ".bmp");
+
+	/* remove input extension if it exists */
+	dot = find_dot(path);
+	if (dot != NULL)
+		*dot = '\0';
+
+	strcat(path, ".");
+	strcat(path, (is_bmp) ? "xyz" : "bmp");
 	return path;
 }
 
 static void convert(char* input_path)
 {
 	image_t image;
-	char* output_path = desired_output_path;
-	if (output_path == NULL)
-		output_path = generate_path(input_path);
+	char is_bmp = check_if_bmp(input_path);
+	char* output_path = generate_path(input_path, is_bmp);
 
 	puts(input_path);
 	puts(output_path);
@@ -113,8 +150,13 @@ static void convert(char* input_path)
 	buffs_open(&input, input_path, "rb", stdin);
 	buffs_open(&output, output_path, "wb", stdout);
 
-	xyz_read(&image, input.stream);
-	bmp_write(&image, output.stream);
+	if (!is_bmp) {
+		xyz_read(&image, input.stream);
+		bmp_write(&image, output.stream);
+	}/* else {
+		bmp_read(&image, input.stream);
+		xyz_write(&image, output.stream);
+	}*/
 
 	buffs_close(&input);
 	buffs_close(&output);
