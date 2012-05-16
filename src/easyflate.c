@@ -20,7 +20,6 @@
 #include <zlib.h>
 
 #include <assert.h> /* temporary */
-#include <stdlib.h>
 
 enum {
 	EASY_CHUNK_SIZE = 4096

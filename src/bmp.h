@@ -21,8 +21,6 @@
 #include "macros.h"
 #include "image.h"
 
-#include <stdio.h>
-
 /* returns non-zero on error */
 uint bmp_write(image_t* image, FILE* output);
 

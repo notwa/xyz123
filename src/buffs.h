@@ -29,8 +29,6 @@
 
 #include "macros.h"
 
-#include <stdio.h>
-
 typedef struct {
 	FILE* stream;
 	uint size;

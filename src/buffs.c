@@ -17,8 +17,6 @@
 
 #include "buffs.h"
 
-#include <stdlib.h>
-
 uint buffs_size = 256 * 1024;
 
 static char is_default_filename(char* s)

@@ -17,8 +17,6 @@
 
 #include "list.h"
 
-#include <stdlib.h>
-
 typedef struct item_s item_t;
 
 struct item_s {

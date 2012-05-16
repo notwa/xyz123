@@ -18,7 +18,6 @@
 #include "bmp.h"
 
 #include <stdint.h>
-#include <stdio.h>
 
 enum {
 	HEADER_SIZE = 14,

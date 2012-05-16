@@ -16,11 +16,6 @@
 */
 
 #include "args.h"
-#include "list.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 static list_t* args = NULL;
 static list_t* switches = NULL;
