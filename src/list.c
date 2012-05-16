@@ -69,7 +69,7 @@ list_t* list_copy(list_t* list)
 {
 	list_t* copy = new_list();
 	item_t* old = list->first;
-	item_t* new;
+	item_t* new = NULL;
 	item_t* previous = NULL;
 
 	copy->size = list->size;

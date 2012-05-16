@@ -10,13 +10,28 @@ PROGRAM = bin/$(NAME)
 SRCS = $(FILES:%=src/%.c)
 OBJS = $(FILES:%=bin/%.o)
 
+DEBUG_FOOTPRINT = bin/_debug
+RELEASE_FOOTPRINT = bin/_release
+
 .PHONY: all
-all: $(PROGRAM)
+all: release
+
+.PHONY: release
+release: CFLAGS += -O3
+release: $(RELEASE_FOOTPRINT) $(PROGRAM)
 
 .PHONY: debug
 debug: CFLAGS += -O0
 debug: LDFLAGS += -g
-debug: $(PROGRAM)
+debug: $(DEBUG_FOOTPRINT) $(PROGRAM)
+
+$(RELEASE_FOOTPRINT):
+	make clean
+	touch $(RELEASE_FOOTPRINT)
+
+$(DEBUG_FOOTPRINT):
+	make clean
+	touch $(DEBUG_FOOTPRINT)
 
 $(PROGRAM): $(OBJS)
 	$(CC) -o $@ $(LDFLAGS) $(OBJS)
@@ -26,7 +41,7 @@ bin/%.o: src/%.c src/%.h
 
 .PHONY: clean
 clean:
-	-rm -f $(PROGRAM) $(OBJS)
+	-rm -f $(PROGRAM) $(OBJS) $(RELEASE_FOOTPRINT) $(DEBUG_FOOTPRINT)
 
 .PHONY: install
 install: all

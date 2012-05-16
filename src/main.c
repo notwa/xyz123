@@ -143,7 +143,7 @@ static void convert(char* input_path)
 	image_t image;
 	char is_bmp = check_if_bmp(input_path);
 	char* output_path = generate_path(input_path, is_bmp);
-	int status;
+	int status = 0;
 
 	buffs_open(&input, input_path, "rb", stdin);
 	buffs_open(&output, output_path, "wb", stdout);
