@@ -37,8 +37,7 @@ static z_stream* new_z_stream()
 	return z;
 }
 
-uint easy_inflate(uchar* input, uint input_length,
-uchar** output)
+uint easy_inflate(uchar* input, uint input_length, uchar** output)
 {
 	z_stream* z;
 	int status;

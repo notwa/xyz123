@@ -1,4 +1,4 @@
-/*	macros.h - definitions to reduce codesize
+/*	macros.h - generic functions and definitions to reduce codesize
 	Copyright (C) 2012 Connor Olding
 
 	This program is free software: you can redistribute it and/or modify
@@ -18,12 +18,16 @@
 #ifndef MACROS_H_
 #define MACROS_H_
 
-#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef unsigned long ulong;
+
+size_t fsize(FILE* file);
 
 void* safe_malloc(size_t size);
 void* safe_calloc(size_t num, size_t size);
@@ -40,9 +44,6 @@ void* safe_realloc(void* ptr, size_t size);
 #define REALLOC(type, ptr, count) (\
 (type*) safe_realloc((ptr), sizeof(type) * (count))\
 )
-
-/* TODO: consider adding a FREE for consistency and so that
- * free can be used without importing stdlib in its entirety */
 
 #endif
 

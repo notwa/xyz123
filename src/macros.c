@@ -1,4 +1,4 @@
-/*	macros.c - definitions to reduce codesize
+/*	macros.c - generic functions and definitions to reduce codesize
 	Copyright (C) 2012 Connor Olding
 
 	This program is free software: you can redistribute it and/or modify
@@ -17,8 +17,16 @@
 
 #include "macros.h"
 
-#include "stdlib.h"
-#include "stdio.h"
+size_t fsize(FILE* file)
+{
+	int position;
+	int size;
+	position = ftell(file);
+	fseek(file, 0, SEEK_END);
+	size = ftell(file);
+	fseek(file, position, SEEK_SET);
+	return size;
+}
 
 void* safe_malloc(size_t size)
 {
