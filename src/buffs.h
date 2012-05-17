@@ -29,15 +29,18 @@
 
 #include "macros.h"
 
-typedef struct {
+typedef struct buffs_s {
 	FILE* stream;
 	uint size;
 	char* buffer;
 } buffs_t;
 
-uint buffs_size;
+buffs_t* new_buffs(uint size);
+void free_buffs(buffs_t* buffs);
 
-void buffs_open(buffs_t* buffs, char* filename, char* mode, FILE* default_);
+void buffs_open_input(buffs_t* buffs, char* filename);
+void buffs_open_output(buffs_t* buffs, char* filename);
+
 void buffs_close(buffs_t* buffs);
 
 #endif

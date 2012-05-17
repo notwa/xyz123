@@ -28,6 +28,7 @@ enum bmp_errors {
 };
 
 /* returns non-zero on error */
+uint bmp_read(image_t* image, FILE* input);
 uint bmp_write(image_t* image, FILE* output);
 
 #endif

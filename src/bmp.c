@@ -77,6 +77,11 @@ static void write_pixel(image_t* image, FILE* output, int i)
 		putc(image->palette[index + 3], output);
 }
 
+uint bmp_read(image_t* iamge, FILE* input)
+{
+	return BMP_NO_ERROR;
+}
+
 uint bmp_write(image_t* image, FILE* output)
 {
 	int x, y;

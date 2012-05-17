@@ -17,13 +17,25 @@
 
 #include "buffs.h"
 
-uint buffs_size = 256 * 1024;
-
 static char is_default_filename(char* s)
 {
 	if (s != NULL && s[0] == '-' && s[1] == '\0')
 		return 1;
 	return 0;
+}
+
+buffs_t* new_buffs(uint size)
+{
+	buffs_t* buffs = ALLOC(buffs_t);
+	buffs->size = size;
+	buffs->buffer = CALLOC(char, size);
+	return buffs;
+}
+
+void free_buffs(buffs_t* buffs)
+{
+	free(buffs->buffer);
+	free(buffs);
 }
 
 static void open(buffs_t* buffs, char* filename, char* mode, FILE* default_)
@@ -39,37 +51,21 @@ static void open(buffs_t* buffs, char* filename, char* mode, FILE* default_)
 			filename, mode);
 		exit(1);
 	}
-}
-
-static void deallocate(buffs_t* buffs)
-{
-	if (buffs->size == 0)
-		return;
-	free(buffs->buffer);
-	buffs->size = 0;
-}
-
-static void allocate(buffs_t* buffs)
-{
-	if (buffs->size != 0)
-		deallocate(buffs);
-
-	buffs->buffer = CALLOC(char, buffs_size);
-
-	buffs->size = buffs_size;
 	setbuf(buffs->stream, buffs->buffer);
 }
 
-void buffs_open(buffs_t* buffs, char* filename, char* mode, FILE* default_)
+void buffs_open_input(buffs_t* buffs, char* filename)
 {
-	open(buffs, filename, mode, default_);
-	if (buffs_size > 0)
-		allocate(buffs);
-} 
+	open(buffs, filename, "rb", stdin);
+}
+
+void buffs_open_output(buffs_t* buffs, char* filename)
+{
+	open(buffs, filename, "wb", stdout);
+}
 
 void buffs_close(buffs_t* buffs)
 {
 	fclose(buffs->stream);
-	deallocate(buffs);
 }
 

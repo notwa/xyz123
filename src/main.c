@@ -17,7 +17,12 @@
 
 #include "main.h"
 
-static buffs_t input, output;
+enum {
+	BUFFER_SIZE = 16 * 1024
+};
+
+static buffs_t* input;
+static buffs_t* output;
 
 static list_t* inputs = NULL;
 static char* desired_output_path = NULL;
@@ -138,32 +143,49 @@ static char* generate_path(char* input_path, char is_bmp)
 	return path;
 }
 
+static int read(image_t* image, char* input_path, char is_bmp)
+{
+	int status;
+	buffs_open_input(input, input_path);
+	if (is_bmp)
+		status = bmp_read(image, input->stream);
+	else
+		status = xyz_read(image, input->stream);
+	buffs_close(input);
+	return status;
+}
+
+static int write(image_t* image, char* output_path, char is_bmp)
+{
+	int status;
+	buffs_open_output(output, output_path);
+	if (is_bmp)
+		status = xyz_write(image, output->stream);
+	else
+		status = bmp_write(image, output->stream);
+	buffs_close(output);
+	return status;
+}
+
 static void convert(char* input_path)
 {
 	image_t image;
 	char is_bmp = check_if_bmp(input_path);
-	char* output_path = generate_path(input_path, is_bmp);
+	char* output_path;
 	int status = 0;
 
-	buffs_open(&input, input_path, "rb", stdin);
-	buffs_open(&output, output_path, "wb", stdout);
+	if ((status = read(&image, input_path, is_bmp))) {
+		fprintf(stderr, "Couldn't read %s: %i\n",
+			input_path, status);
+		return;
+	}
 
-	if (!is_bmp) {
-		if ((status = xyz_read(&image, input.stream)))
-			fprintf(stderr, "Error reading %s as xyz: %i\n",
-				input_path, status);
-		else if ((status = bmp_write(&image, output.stream)))
-			fprintf(stderr, "Error writing %s as bmp: %i\n",
-				output_path, status);
-	}/* else {
-		bmp_read(&image, input.stream);
-		xyz_write(&image, output.stream);
-	}*/
+	output_path = generate_path(input_path, is_bmp);
 
-	buffs_close(&input);
-	buffs_close(&output);
-
-	if (status == 0)
+	if ((status = write(&image, output_path, is_bmp)))
+		fprintf(stderr, "Couldn't write %s: %i\n",
+			output_path, status);
+	else
 		puts(output_path);
 
 	if (desired_output_path == NULL)
@@ -187,12 +209,18 @@ static void convert_inputs()
 		exit(1);
 	}
 
+	input = new_buffs(BUFFER_SIZE);
+	output = new_buffs(BUFFER_SIZE);
+
 	input_path = (char*) list_pop_front(inputs);
 	while (input_path != NULL) {
 		convert(input_path);
 		input_path = (char*) list_pop_front(inputs);
 	}
+
 	free(inputs);
+	free_buffs(input);
+	free_buffs(output);
 }
 
 int main(int argc, char** argv)

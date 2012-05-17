@@ -98,3 +98,9 @@ uint xyz_read(image_t* image, FILE* input)
 	return status;
 }
 
+uint xyz_write(image_t* image, FILE* output)
+{
+	return XYZ_NO_ERROR;
+}
+
+
