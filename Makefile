@@ -3,7 +3,7 @@ FILES = main args xyz buffs ezflate bmp macros list
 
 CC ?= gcc
 CFLAGS += -ansi -pedantic -Wall -Werror
-LDFLAGS = -lz
+LDFLAGS += -lz
 
 PREFIX ?= /usr/local
 PROGRAM = bin/$(NAME)
@@ -21,7 +21,7 @@ release: CFLAGS += -O3
 release: $(RELEASE_FOOTPRINT) $(PROGRAM)
 
 .PHONY: debug
-debug: CFLAGS += -O0
+debug: CFLAGS += -O0 -g
 debug: LDFLAGS += -g
 debug: $(DEBUG_FOOTPRINT) $(PROGRAM)
 
@@ -34,10 +34,10 @@ $(DEBUG_FOOTPRINT):
 	touch $(DEBUG_FOOTPRINT)
 
 $(PROGRAM): $(OBJS)
-	$(CC) -o $@ $(LDFLAGS) $(OBJS)
+	$(CC) -o $@ $(OBJS) $(LDFLAGS) 
 
 bin/%.o: src/%.c src/%.h
-	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) -c $<
+	$(CC) -o $@ $(CFLAGS) -c $<
 
 .PHONY: clean
 clean:
