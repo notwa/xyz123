@@ -24,12 +24,13 @@
 enum bmp_errors {
 	BMP_NO_ERROR,
 	BMP_FORMATTING_ERROR,
+	BMP_UNSUPPORTED_ERROR,
 	BMP_EOF_ERROR
 };
 
 /* returns non-zero on error */
-uint bmp_read(image_t* image, FILE* input);
-uint bmp_write(image_t* image, FILE* output);
+int bmp_read(image_t* image, FILE* input);
+int bmp_write(image_t* image, FILE* output);
 
 #endif
 

@@ -5,7 +5,7 @@ enum {
 	HEADER_SIZE = 8
 };
 
-static uint decompress(FILE* input, uchar** output, uint* length)
+static int decompress(FILE* input, uchar** output, uint* length)
 {
 	uint filesize;
 	uchar* compressed;
@@ -37,7 +37,7 @@ static uint decompress(FILE* input, uchar** output, uint* length)
 	return XYZ_NO_ERROR;
 }
 
-static uint read_header(image_t* image, uchar* data, uint length)
+static int read_header(image_t* image, uchar* data, uint length)
 {
 	int i;
 	char id[5];
@@ -57,7 +57,7 @@ static uint read_header(image_t* image, uchar* data, uint length)
 	return XYZ_NO_ERROR;
 }
 
-static uint read_pixels(image_t* image, uchar* data, uint length)
+static int read_pixels(image_t* image, uchar* data, uint length)
 {
 	int i;
 	int area = image->width * image->height;
@@ -82,25 +82,57 @@ static uint read_pixels(image_t* image, uchar* data, uint length)
 	return XYZ_NO_ERROR;
 }
 
-uint xyz_read(image_t* image, FILE* input)
+int xyz_read(image_t* image, FILE* input)
 {
 	uchar* data = NULL;
 	uint length;
 	int status = XYZ_NO_ERROR;
-	if (!status)
-		status = decompress(input, &data, &length);
-	if (!status)
-		status = read_header(image, data, length);
-	if (!status)
-		status = read_pixels(image, data + HEADER_SIZE, length);
+	if ((status = decompress(input, &data, &length)));
+	else if ((status = read_header(image, data, length)));
+	else if ((status = read_pixels(image, data + HEADER_SIZE, length)));
 	if (data)
 		free(data);
 	return status;
 }
 
-uint xyz_write(image_t* image, FILE* output)
+static int write_header(image_t* image, FILE* output)
 {
+	fputs("XYZ1", output);
+	putc(image->width & 0xFF, output);
+	putc(image->width >> 8, output);
+	putc(image->height & 0xFF, output);
+	putc(image->height >> 8, output);
 	return XYZ_NO_ERROR;
 }
 
+static int write_data(image_t* image, FILE* output)
+{
+	int status;
+	uint length;
+	int palette_size = 256 * image->channels;
+	int pixel_size = image->width * image->height;
+	int total_size = palette_size + pixel_size;
+
+	uchar* data = CALLOC(uchar, total_size);
+	uchar* compressed = CALLOC(uchar, total_size);
+
+	memcpy(data, image->palette, palette_size);
+	memcpy(data + palette_size, image->pixels, pixel_size);
+	status = ez_deflate(data, total_size, &compressed, &length);
+
+	if (!status)
+		fwrite(compressed, length, 1, output);
+
+	free(data);
+	free(compressed);
+	return XYZ_NO_ERROR;
+}
+
+int xyz_write(image_t* image, FILE* output)
+{
+	int status = XYZ_NO_ERROR;
+	if ((status = write_header(image, output)));
+	else if ((status = write_data(image, output)));
+	return status;
+}
 

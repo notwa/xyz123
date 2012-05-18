@@ -18,6 +18,7 @@
 #include "bmp.h"
 
 #include <stdint.h>
+#include <assert.h>
 
 enum {
 	HEADER_SIZE = 14,
@@ -77,12 +78,110 @@ static void write_pixel(image_t* image, FILE* output, int i)
 		putc(image->palette[index + 3], output);
 }
 
-uint bmp_read(image_t* iamge, FILE* input)
+static int read_headers(image_t* image, FILE* input)
 {
+	int filesize = fsize(input);
+	int area, palette_size, pixel_size;
+	char id[3];
+	bmp_header_t head;
+	bmp_dib_header_t dib;
+
+	if (filesize < FULL_SIZE)
+		return BMP_EOF_ERROR;
+
+	fread(id, 2, 1, input);
+	id[2] = '\0';
+	if (strcmp(id, "BM"))
+		return BMP_FORMATTING_ERROR;
+
+	fread(&head, HEADER_SIZE - 2, 1, input);
+	fread(&dib, DIB_SIZE, 1, input);
+
+	if (dib.width >= 0x10000 || dib.height >= 0x10000)
+		return BMP_UNSUPPORTED_ERROR;
+	image->width = dib.width;
+	image->height = dib.height;
+
+	image->channels = dib.bits_per_pixel / 8;
+	if (image->channels < 3 || image->channels > 4)
+		return BMP_UNSUPPORTED_ERROR;
+
+	area = image->width * image->height;
+	palette_size = 0x100 * image->channels;
+	pixel_size = area * image->channels;
+	if (filesize < FULL_SIZE + pixel_size)/* + palette_size);*/
+		return BMP_EOF_ERROR;
+
+	image->palette = CALLOC(uint8_t, palette_size);
+	image->pixels = CALLOC(uint8_t, area);
+
 	return BMP_NO_ERROR;
 }
 
-uint bmp_write(image_t* image, FILE* output)
+static uchar find_pixel(uint32_t* palette, int *psize, uint32_t pixel)
+{
+	int i;
+	for (i = 0; i < *psize; i++) {
+		if (palette[i] == pixel)
+			return i;
+	}
+	palette[*psize] = pixel;
+	(*psize)++;
+	assert(*psize < 256);
+	return *psize - 1;
+}
+
+static int read_pixels(image_t* image, FILE* input)
+{
+	int r, g, b;
+	int a = 0;
+	int i;
+	uint32_t palette[256];
+	int psize = 0;
+	int area = image->width * image->height;
+	int pixel_n = area - image->width;
+	while (1) {
+		uint32_t pixel;
+		if ((b = getc(input)) == EOF)
+			break;
+		else if ((g = getc(input)) == EOF)
+			return BMP_FORMATTING_ERROR;
+		else if ((r = getc(input)) == EOF)
+			return BMP_FORMATTING_ERROR;
+		else if (image->channels == 4 && (a = getc(input)) == EOF)
+			return BMP_FORMATTING_ERROR;
+
+		pixel = (r << 24) + (g << 16) + (b << 8) + a;
+		image->pixels[pixel_n] = find_pixel(palette, &psize, pixel);
+		pixel_n++;
+		if (pixel_n % image->width == 0)
+			pixel_n -= image->width * 2;
+	}
+	if (pixel_n != -image->width)
+		return BMP_EOF_ERROR;
+
+	for (i = 0; i < 256; i++) {
+		image->palette[i * 3 + 0] = (palette[i] >> 24) & 0xFF;
+		image->palette[i * 3 + 1] = (palette[i] >> 16) & 0xFF;
+		image->palette[i * 3 + 2] = (palette[i] >> 8) & 0xFF;
+		if (image->channels == 4)
+			image->palette[i * 3 + 3] = palette[i] & 0xFF;
+	}
+
+	return BMP_NO_ERROR;
+}
+
+int bmp_read(image_t* image, FILE* input)
+{
+	int status = BMP_NO_ERROR;
+
+	if ((status = read_headers(image, input)));
+	else if ((status = read_pixels(image, input)));
+
+	return status;
+}
+
+int bmp_write(image_t* image, FILE* output)
 {
 	int x, y;
 	int status = BMP_NO_ERROR;

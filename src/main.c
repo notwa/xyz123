@@ -225,7 +225,7 @@ static void convert_inputs()
 
 int main(int argc, char** argv)
 {
-	setup_switches(); 
+	setup_switches();
 	args_handle(argc, argv);
 	convert_inputs();
 

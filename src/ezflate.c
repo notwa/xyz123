@@ -43,10 +43,8 @@ static z_stream* new_z_stream()
 int ez_inflate(uchar* input, uint input_length,
 		uchar** output, uint* output_length)
 {
-	z_stream* z;
 	int status;
-
-	z = new_z_stream();
+	z_stream* z = new_z_stream();
 	if ((status = inflateInit(z)))
 		return convert_status(status);
 
@@ -67,6 +65,41 @@ int ez_inflate(uchar* input, uint input_length,
 			z->next_out = (Bytef*) *output + z->total_out;
 		}
 		if ((status = inflate(z, Z_NO_FLUSH)) < 0)
+			break;
+	}
+	if (status == Z_STREAM_END)
+		status = Z_OK;
+
+	*output_length = z->total_out;
+	free(z);
+	return convert_status(status);
+}
+
+int ez_deflate(uchar* input, uint input_length,
+		uchar** output, uint* output_length)
+{
+	int status;
+	z_stream* z = new_z_stream();
+	if ((status = deflateInit(z, Z_DEFAULT_COMPRESSION)))
+		return convert_status(status);
+
+	z->next_in = (Bytef*) input;
+	z->avail_in = input_length;
+
+	*output = CALLOC(uchar, EZ_CHUNK_SIZE);
+	z->next_out = (Bytef*) *output;
+	z->avail_out = EZ_CHUNK_SIZE;
+
+	status = Z_OK;
+	while (status != Z_STREAM_END) {
+		if (z->avail_out <= 0) {
+			int size;
+			z->avail_out = EZ_CHUNK_SIZE;
+			size = z->total_out + z->avail_out;
+			*output = REALLOC(uchar, *output, size);
+			z->next_out = (Bytef*) *output + z->total_out;
+		}
+		if ((status = deflate(z, Z_FINISH)) < 0)
 			break;
 	}
 	if (status == Z_STREAM_END)

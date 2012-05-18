@@ -29,8 +29,8 @@ enum xyz_errors {
 };
 
 /* returns non-zero on error */
-uint xyz_read(image_t* image, FILE* input);
-uint xyz_write(image_t* image, FILE* output);
+int xyz_read(image_t* image, FILE* input);
+int xyz_write(image_t* image, FILE* output);
 
 #endif
 

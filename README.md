@@ -1,17 +1,19 @@
 xyz123
 ======
 
-Converts RPG Maker's xyz image format to BMPs.
+Converts RPG Maker's xyz image format to and from gifs.
+**Note:** xyz123 is currently being redesigned and will not work as expected.
+See TODO.
 
 TODO
 ----
 
-- Refactor
-- Take a bath (asserts, TODOs and FIXMEs)
+- Scrap bmp and ezflate files in favor of a gif library and zlib's utility
+functions
+
 - Write/rewrite comments
-- Add BMP to xyz conversion
+
 - Write a proper readme
-- Test list implementation
 
 Notes
 -----

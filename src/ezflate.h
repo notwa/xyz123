@@ -33,6 +33,8 @@ enum ez_errors {
 /* returns non-zero on error */
 int ez_inflate(uchar* input, uint input_length,
 		uchar** output, uint* output_length);
+int ez_deflate(uchar* input, uint input_length,
+		uchar** output, uint* output_length);
 
 #endif
 
