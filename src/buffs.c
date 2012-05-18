@@ -1,4 +1,4 @@
-/*	buffs.c - simplified buffer streams
+/*	buffs.c - simplified buffered streams
 	Copyright (C) 2012 Connor Olding
 
 	This program is free software: you can redistribute it and/or modify

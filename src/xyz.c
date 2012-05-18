@@ -1,63 +1,64 @@
+/*	xyz.c - xyz image format conversion
+	Copyright (C) 2012 Connor Olding
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "xyz.h"
-#include "ezflate.h"
+
+#include <zlib.h>
 
 enum {
-	HEADER_SIZE = 8
+	HEADER_SIZE = 8,
+	PALETTE_SIZE = 256 * 3
 };
 
-static int decompress(FILE* input, uchar** output, uint* length)
+static int decompress(FILE* input, uchar** data, ulong* length)
 {
-	uint filesize;
-	uchar* compressed;
-	uchar* decompressed = NULL;
-	uchar* full;
+	int status;
+	ulong filesize = fsize(input) - HEADER_SIZE;
+	uchar* compressed = CALLOC(uchar, filesize);
+	uchar* decompressed = CALLOC(uchar, *length);
 
-	/* read header */
-	full = CALLOC(uchar, HEADER_SIZE);
-	fread(full, HEADER_SIZE, sizeof(uchar), input);
-
-	/* read compressed data */
-	filesize = fsize(input);
-	if (filesize <= 8)
-		return XYZ_EOF_ERROR;
-	filesize -= HEADER_SIZE;
-	compressed = CALLOC(uchar, filesize);
 	fread(compressed, filesize, sizeof(uchar), input);
-
-	if (ez_inflate(compressed, filesize, &decompressed, length))
-		return XYZ_ZLIB_ERROR;
-
-	/* concatenate decompressed data to "full" */
-	full = REALLOC(uchar, full, *length + HEADER_SIZE);
-	memcpy(full + HEADER_SIZE, decompressed, *length);
+	status = uncompress((Bytef*) decompressed, length,
+		(Bytef*) compressed, filesize);
 
 	free(compressed);
-	free(decompressed);
-	*output = full;
-	return XYZ_NO_ERROR;
+	*data = decompressed;
+	return (status) ? XYZ_ZLIB_ERROR : XYZ_NO_ERROR;
 }
 
-static int read_header(image_t* image, uchar* data, uint length)
+static int read_header(image_t* image, FILE* input, ulong *length)
 {
-	int i;
 	char id[5];
 
-	if (length < HEADER_SIZE)
+	fread(id, sizeof(char), 4, input);
+	if (feof(input))
 		return XYZ_EOF_ERROR;
 
-	for (i = 0; i < 4; i++)
-		id[i] = data[i];
 	id[4] = '\0';
-
 	if (strcmp(id, "XYZ1"))
 		return XYZ_FORMATTING_ERROR;
 
-	image->width = data[4] + (data[5] << 8);
-	image->height = data[6] + (data[7] << 8);
+	image->width = getc(input) + (getc(input) << 8);
+	image->height = getc(input) + (getc(input) << 8);
+	*length = PALETTE_SIZE + image->width * image->height;
 	return XYZ_NO_ERROR;
 }
 
-static int read_pixels(image_t* image, uchar* data, uint length)
+static int read_pixels(image_t* image, uchar* data, ulong length)
 {
 	int i;
 	int area = image->width * image->height;
@@ -68,9 +69,8 @@ static int read_pixels(image_t* image, uchar* data, uint length)
 		return XYZ_EOF_ERROR;
 
 	palette_size = length - area;
-	if (palette_size % 256)
+	if (palette_size % 256 || palette_size / 256 != 3)
 		return XYZ_FORMATTING_ERROR;
-	image->channels = palette_size / 256;
 
 	image->palette = CALLOC(uint8_t, palette_size);
 	for (i = 0; i < palette_size; i++)
@@ -85,11 +85,11 @@ static int read_pixels(image_t* image, uchar* data, uint length)
 int xyz_read(image_t* image, FILE* input)
 {
 	uchar* data = NULL;
-	uint length;
+	ulong length = 0;
 	int status = XYZ_NO_ERROR;
-	if ((status = decompress(input, &data, &length)));
-	else if ((status = read_header(image, data, length)));
-	else if ((status = read_pixels(image, data + HEADER_SIZE, length)));
+	if ((status = read_header(image, input, &length)));
+	else if ((status = decompress(input, &data, &length)));
+	else if ((status = read_pixels(image, data, length)));
 	if (data)
 		free(data);
 	return status;
@@ -108,24 +108,24 @@ static int write_header(image_t* image, FILE* output)
 static int write_data(image_t* image, FILE* output)
 {
 	int status;
-	uint length;
-	int palette_size = 256 * image->channels;
 	int pixel_size = image->width * image->height;
-	int total_size = palette_size + pixel_size;
+	int total_size = PALETTE_SIZE + pixel_size;
+	ulong length = PALETTE_SIZE + pixel_size;
 
 	uchar* data = CALLOC(uchar, total_size);
-	uchar* compressed = CALLOC(uchar, total_size);
+	uchar* compressed = CALLOC(uchar, length);
 
-	memcpy(data, image->palette, palette_size);
-	memcpy(data + palette_size, image->pixels, pixel_size);
-	status = ez_deflate(data, total_size, &compressed, &length);
+	memcpy(data, image->palette, PALETTE_SIZE);
+	memcpy(data + PALETTE_SIZE, image->pixels, pixel_size);
+	status = compress((Bytef*) compressed, &length,
+		(Bytef*) data, total_size);
 
 	if (!status)
 		fwrite(compressed, length, 1, output);
 
 	free(data);
 	free(compressed);
-	return XYZ_NO_ERROR;
+	return (status) ? XYZ_ZLIB_ERROR : XYZ_NO_ERROR;
 }
 
 int xyz_write(image_t* image, FILE* output)

@@ -1,4 +1,4 @@
-/*	xyz123 - xyz to BMP image converter
+/*	xyz123 - xyz <-> gif image converter
 	Copyright (C) 2012 Connor Olding
 
 	This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ static buffs_t* output;
 
 static list_t* inputs = NULL;
 static char* desired_output_path = NULL;
-static char force_bmp = 0;
+static char force_gif = 0;
 
 void args_print_info()
 {
@@ -57,9 +57,9 @@ static void set_output(char* arg)
 	desired_output_path = args_poll();
 }
 
-static void set_bmp(char* arg)
+static void set_gif(char* arg)
 {
-	force_bmp = 1;
+	force_gif = 1;
 }
 
 args_switch_t h = {
@@ -69,8 +69,8 @@ args_switch_t o = {
 	'o',"--output","FILE    write to FILE as an image",
 	set_output };
 args_switch_t b = {
-	'b',"--bmp","           force inputs to be treated as BMPs",
-	set_bmp };
+	'g',"--gif","           force inputs to be treated as gifs",
+	set_gif };
 
 static void setup_switches()
 {
@@ -105,20 +105,20 @@ static char* find_dot(char* path)
 	return NULL;
 }
 
-static char check_if_bmp(char* input_path)
+static char check_if_gif(char* input_path)
 {
 	char* dot;
-	if (force_bmp)
+	if (force_gif)
 		return 1;
 	dot = find_dot(input_path);
 	if (dot == NULL || strlen(dot) < 2)
 		return 0;
-	if (!strcmp(dot + 1, "bmp"))
+	if (!strcmp(dot + 1, "gif"))
 		return 1;
 	return 0;
 }
 
-static char* generate_path(char* input_path, char is_bmp)
+static char* generate_path(char* input_path, char is_gif)
 {
 	int length;
 	char* path;
@@ -139,30 +139,30 @@ static char* generate_path(char* input_path, char is_bmp)
 		*dot = '\0';
 
 	strcat(path, ".");
-	strcat(path, (is_bmp) ? "xyz" : "bmp");
+	strcat(path, (is_gif) ? "xyz" : "gif");
 	return path;
 }
 
-static int read(image_t* image, char* input_path, char is_bmp)
+static int read(image_t* image, char* input_path, char is_gif)
 {
 	int status;
 	buffs_open_input(input, input_path);
-	if (is_bmp)
-		status = bmp_read(image, input->stream);
+	if (is_gif)
+		status = gif_read(image, input->stream);
 	else
 		status = xyz_read(image, input->stream);
 	buffs_close(input);
 	return status;
 }
 
-static int write(image_t* image, char* output_path, char is_bmp)
+static int write(image_t* image, char* output_path, char is_gif)
 {
 	int status;
 	buffs_open_output(output, output_path);
-	if (is_bmp)
+	if (is_gif)
 		status = xyz_write(image, output->stream);
 	else
-		status = bmp_write(image, output->stream);
+		status = gif_write(image, output->stream);
 	buffs_close(output);
 	return status;
 }
@@ -170,19 +170,19 @@ static int write(image_t* image, char* output_path, char is_bmp)
 static void convert(char* input_path)
 {
 	image_t image;
-	char is_bmp = check_if_bmp(input_path);
+	char is_gif = check_if_gif(input_path);
 	char* output_path;
 	int status = 0;
 
-	if ((status = read(&image, input_path, is_bmp))) {
+	if ((status = read(&image, input_path, is_gif))) {
 		fprintf(stderr, "Couldn't read %s: %i\n",
 			input_path, status);
 		return;
 	}
 
-	output_path = generate_path(input_path, is_bmp);
+	output_path = generate_path(input_path, is_gif);
 
-	if ((status = write(&image, output_path, is_bmp)))
+	if ((status = write(&image, output_path, is_gif)))
 		fprintf(stderr, "Couldn't write %s: %i\n",
 			output_path, status);
 	else

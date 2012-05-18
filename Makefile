@@ -1,5 +1,5 @@
 NAME = xyz123
-FILES = main args xyz buffs ezflate bmp macros list
+FILES = main args xyz buffs gif macros list
 
 CC ?= gcc
 CFLAGS += -ansi -pedantic -Wall -Werror
