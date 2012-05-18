@@ -188,6 +188,8 @@ static void convert(char* input_path)
 	else
 		puts(output_path);
 
+	free(image.palette);
+	free(image.pixels);
 	if (desired_output_path == NULL)
 		free(output_path);
 }
