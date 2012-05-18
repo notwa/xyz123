@@ -3,7 +3,7 @@ FILES = main args xyz buffs gif macros list
 
 CC ?= gcc
 CFLAGS += -ansi -pedantic -Wall -Werror
-LDFLAGS += -lz
+LDFLAGS += -lz -lgif
 
 PREFIX ?= /usr/local
 PROGRAM = bin/$(NAME)

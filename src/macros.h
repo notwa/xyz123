@@ -18,6 +18,7 @@
 #ifndef MACROS_H_
 #define MACROS_H_
 
+#define _POSIX_SOURCE /* for fileno */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
