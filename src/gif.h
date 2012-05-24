@@ -15,7 +15,7 @@
 
 enum gif_errors {
 	GIF_NO_ERROR,
-	GIF_ERROR
+	GIF_LIB_ERROR
 };
 
 /* returns non-zero on error */
