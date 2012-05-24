@@ -2,18 +2,42 @@ xyz123
 ======
 
 Converts RPG Maker's xyz image format to and from gifs.
-**Note:** xyz123 is currently being redesigned and will not work as expected.
-See TODO.
+
+Installation
+------------
+
+### Prerequisites ###
+
+[zlib][] and [giflib][].
+These should be available in your distro's package manager.
+
+[zlib]: http://zlib.net/
+[giflib]: http://sourceforge.net/projects/giflib/
+
+### Compilation ###
+
+`make` or `make debug`
+
+### Installation ###
+
+`make install`
 
 TODO
 ----
 
-- Scrap bmp and ezflate files in favor of a gif library and zlib's utility
-functions
+- Add gif reading.
 
-- Write/rewrite comments
+- Add "opaque" and "silent" switches.
 
-- Write a proper readme
+- Write a Usage section in the readme.
+
+- Add "--" handling to args.
+
+- Hardcode "--" prefixes for long switches.
+
+- Fix list\_unlink.
+
+- Write and rewrite some comments
 
 Notes
 -----
