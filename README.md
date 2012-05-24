@@ -3,8 +3,8 @@ xyz123
 
 Converts RPG Maker's xyz image format to and from gifs.
 
-Installation
-------------
+Building
+--------
 
 ### Prerequisites ###
 
@@ -16,11 +16,13 @@ These should be available in your distro's package manager.
 
 ### Compilation ###
 
-`make` or `make debug`
+**GNU Make:** `make` or `make debug`, optionally `make install`
 
-### Installation ###
+**CMake:** CMake files are provided for users that prefer to use it.
+As always, it's recommended to do an [out-of-source build][oosb] with
+CMake to avoid cluttering the source tree.
 
-`make install`
+[oosb]: http://vtk.org/Wiki/CMake_FAQ#Out-of-source_build_trees
 
 TODO
 ----
