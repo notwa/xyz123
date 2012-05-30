@@ -19,24 +19,25 @@ static buffs_t* output;
 static list_t* inputs = NULL;
 static char* desired_output_path = NULL;
 static char force_gif = 0;
+static char silent = 0;
 
 void args_print_info()
 {
-	puts("xyz123 - xyz to BMP image converter");
+	puts("xyz123 - xyz to gif image converter");
 }
 
 void args_print_usage()
 {
-	printf("Usage: %s FILE [FILES...] [-b] [-o FILE]\n",
+	printf("Usage: %s FILE... [-g] [-o FILE]\n",
 		args_program_name);
 }
 
 void args_print_help_suffix()
 {
 	puts("\n\
-FILE may be '-' to use stdin/stdout for input/output.\n\
-If no output is specified, it will default to the\n\
-input's path with the appropriate extension.");
+FILE may be '-' to specify stdin/stdout.\n\
+If an output path isn't specified, each input will\n\
+adopt an output path with the appropriate extension.");
 }
 
 static void set_input(char* arg)
@@ -54,15 +55,23 @@ static void set_gif(char* arg)
 	force_gif = 1;
 }
 
+static void set_silent(char* arg)
+{
+	silent = 1;
+}
+
 args_switch_t h = {
 	'h',"--help","          display this text",
 	args_print_help };
 args_switch_t o = {
-	'o',"--output","FILE    write to FILE as an image",
+	'o',"--output","FILE    write to FILE",
 	set_output };
 args_switch_t b = {
 	'g',"--gif","           force inputs to be treated as gifs",
 	set_gif };
+args_switch_t s = {
+	's',"--silent","        don't print output filenames",
+	set_silent };
 
 static void setup_switches()
 {
@@ -70,6 +79,7 @@ static void setup_switches()
 	args_push_switch(&h);
 	args_push_switch(&o);
 	args_push_switch(&b);
+	args_push_switch(&s);
 
 	args_fallback_handler = set_input;
 }
@@ -174,11 +184,13 @@ static void convert(char* input_path)
 
 	output_path = generate_path(input_path, is_gif);
 
-	if ((status = write_image(&image, output_path, is_gif)))
+	if ((status = write_image(&image, output_path, is_gif))) {
 		fprintf(stderr, "Couldn't write %s: %i\n",
 			output_path, status);
-	else
-		puts(output_path);
+	} else {
+		if (!silent)
+			puts(output_path);
+	}
 
 	free(image.palette);
 	free(image.pixels);
@@ -193,7 +205,8 @@ static void convert_inputs()
 
 	if (input_count == 0) {
 		args_print_usage();
-		fprintf(stderr, "An input must be specified.\n");
+		fprintf(stderr, "An input must be specified."
+			" Try --help for information.\n");
 		exit(1);
 	}
 	if (desired_output_path != NULL && input_count > 1) {

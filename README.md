@@ -24,14 +24,24 @@ CMake to avoid cluttering the source tree.
 
 [oosb]: http://vtk.org/Wiki/CMake_FAQ#Out-of-source_build_trees
 
+Usage
+-----
+
+	Usage: bin/xyz123 FILE... [-g] [-o FILE]
+
+	  -h, --help           display this text
+	  -o, --output FILE    write to FILE
+	  -g, --gif            force inputs to be treated as gifs
+	  -s, --silent         don't print output filenames
+
+	FILE may be '-' to specify stdin/stdout.
+	If an output path isn't specified, each input will
+	adopt an output path with the appropriate extension.
+
 TODO
 ----
 
 - Add gif reading.
-
-- Add "opaque" and "silent" switches.
-
-- Write a Usage section in the readme.
 
 - Add "--" handling to args.
 
