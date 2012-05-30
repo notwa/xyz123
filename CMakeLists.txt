@@ -4,7 +4,7 @@ include(CheckIncludeFiles)
 project(xyz123)
 
 if (CMAKE_COMPILER_IS_GNUCC)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ansi -pedantic -Wall -Werror")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic -Wall -Werror")
 endif ()
 
 check_include_files(stdint.h HAVE_STDINT_H)

@@ -2,7 +2,7 @@ NAME = xyz123
 FILES = main args xyz buffs gif macros list
 
 CC ?= gcc
-CFLAGS += -ansi -pedantic -Wall -Werror
+CFLAGS += -pedantic -Wall -Werror
 LDFLAGS += -lz -lgif
 
 PREFIX ?= /usr/local
@@ -17,7 +17,7 @@ RELEASE_FOOTPRINT = bin/_release
 all: release
 
 .PHONY: release
-release: CFLAGS += -O3
+#release: CFLAGS += -O3
 release: $(RELEASE_FOOTPRINT) $(PROGRAM)
 
 .PHONY: debug

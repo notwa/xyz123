@@ -135,7 +135,7 @@ static char* generate_path(char* input_path, char is_gif)
 	return path;
 }
 
-static int read(image_t* image, char* input_path, char is_gif)
+static int read_image(image_t* image, char* input_path, char is_gif)
 {
 	int status;
 	buffs_open_input(input, input_path);
@@ -147,7 +147,7 @@ static int read(image_t* image, char* input_path, char is_gif)
 	return status;
 }
 
-static int write(image_t* image, char* output_path, char is_gif)
+static int write_image(image_t* image, char* output_path, char is_gif)
 {
 	int status;
 	buffs_open_output(output, output_path);
@@ -166,7 +166,7 @@ static void convert(char* input_path)
 	char* output_path;
 	int status = 0;
 
-	if ((status = read(&image, input_path, is_gif))) {
+	if ((status = read_image(&image, input_path, is_gif))) {
 		fprintf(stderr, "Couldn't read %s: %i\n",
 			input_path, status);
 		return;
@@ -174,7 +174,7 @@ static void convert(char* input_path)
 
 	output_path = generate_path(input_path, is_gif);
 
-	if ((status = write(&image, output_path, is_gif)))
+	if ((status = write_image(&image, output_path, is_gif)))
 		fprintf(stderr, "Couldn't write %s: %i\n",
 			output_path, status);
 	else

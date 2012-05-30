@@ -30,7 +30,7 @@ void free_buffs(buffs_t* buffs)
 	free(buffs);
 }
 
-static void open(buffs_t* buffs, char* filename, char* mode, FILE* default_)
+static void bopen(buffs_t* buffs, char* filename, char* mode, FILE* default_)
 {
 	if (default_ != NULL && is_default_filename(filename)) {
 		freopen(FREOPEN_BLANK, mode, default_);
@@ -48,12 +48,12 @@ static void open(buffs_t* buffs, char* filename, char* mode, FILE* default_)
 
 void buffs_open_input(buffs_t* buffs, char* filename)
 {
-	open(buffs, filename, "rb", stdin);
+	bopen(buffs, filename, "rb", stdin);
 }
 
 void buffs_open_output(buffs_t* buffs, char* filename)
 {
-	open(buffs, filename, "wb", stdout);
+	bopen(buffs, filename, "wb", stdout);
 }
 
 void buffs_close(buffs_t* buffs)
