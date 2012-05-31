@@ -41,8 +41,6 @@ Usage
 TODO
 ----
 
-- Add gif reading.
-
 - Add "--" handling to args.
 
 - Hardcode "--" prefixes for long switches.

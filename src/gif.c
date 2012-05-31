@@ -7,6 +7,10 @@
  * If not, visit http://gnu.org/licenses/ to obtain one.
  */
 
+/* This is loosely based on code by Hari Nair. Specifically,
+ * <http://cpansearch.perl.org/src/DHUNT/PDL-Planet-0.12/libimage/gif.c>
+ */
+
 #include "gif.h"
 
 #include <gif_lib.h>
@@ -18,34 +22,155 @@ enum {
 
 static char gce_data[GCE_LENGTH] = {
 	0x01, /* there is a transparent color */
-	0x00, /* unused */
-	0x00, /* color #0 is transparent */
+	0x00, /* unimportant */
+	0x00, /* this color is trasparent (changed as needed) */
 	0x00 /* end of extension */
 };
 
-int gif_read(image_t* image, FILE* input)
+static int open_dhandler(FILE* file, GifFileType** gif)
+{
+	int fn = fileno(file);
+	if ((*gif = DGifOpenFileHandle(fn)) == NULL)
+		return GIF_LIB_ERROR;
+	return GIF_NO_ERROR;
+}
+
+static int read_desc(image_t* image, GifFileType* gif)
+{
+	int i;
+	int area;
+	GifPixelType* line;
+
+	if (DGifGetImageDesc(gif) == GIF_ERROR)
+		return GIF_LIB_ERROR;
+
+	image->width = gif->Image.Width;
+	image->height = gif->Image.Height;
+	area = image->width * image->height;
+
+	image->pixels = CALLOC(uint8_t, area);
+
+	if (gif->Image.Interlace) /* TODO */
+		return GIF_LIB_ERROR;
+
+	line = (GifPixelType*) image->pixels;
+	for (i = 0; i < image->height; i++) {
+		if (DGifGetLine(gif, line, image->width) == GIF_ERROR)
+			break;
+		line += image->width;
+	}
+
+	if (i != image->height) {
+		free(image->pixels);
+		return GIF_LIB_ERROR;
+	} else {
+		return GIF_NO_ERROR;
+	}
+}
+
+static int read_ext(image_t* image, int code, GifByteType* ext)
+{
+	/* currently we only support one extension type */
+	if (code != GCE_ID)
+		return GIF_NO_ERROR;
+	if (ext[0] == 1) {
+		image->flags |= IMAGE_TRANSPARENT;
+		image->trans_key = ext[2];
+	}
+	return GIF_NO_ERROR;
+}
+
+static int read_ext_block(image_t* image, GifFileType* gif)
+{
+	int code;
+	GifByteType* ext;
+
+	if (DGifGetExtension(gif, &code, &ext) == GIF_ERROR)
+		return GIF_LIB_ERROR;
+	read_ext(image, code, ext);
+
+	while (ext != NULL) {
+		if (DGifGetExtensionNext(gif, &ext) == GIF_ERROR)
+			return GIF_LIB_ERROR;
+		if (ext != NULL)
+			read_ext(image, code, ext);
+	}
+
+	return GIF_NO_ERROR;
+}
+
+static void convert_gif_palette(image_t* image, ColorMapObject* gif_palette)
+{
+	int i;
+
+	image->palette = CALLOC(uint8_t, 256 * 3);
+
+	for (i = 0; i < gif_palette->ColorCount; i++) {
+		GifColorType* color = &gif_palette->Colors[i];
+		image->palette[i * 3 + 0] = color->Red;
+		image->palette[i * 3 + 1] = color->Green;
+		image->palette[i * 3 + 2] = color->Blue;
+	}
+}
+
+static int read_records(image_t* image, GifFileType* gif)
 {
 	int status = GIF_NO_ERROR;
+	GifRecordType rtype;
+	while (1) {
+		DGifGetRecordType(gif, &rtype);
+		if (rtype == IMAGE_DESC_RECORD_TYPE)
+			status = read_desc(image, gif);
+		else if (rtype == EXTENSION_RECORD_TYPE)
+			status = read_ext_block(image, gif);
+		else if (rtype == TERMINATE_RECORD_TYPE)
+			break;
+		else
+			status = GIF_LIB_ERROR;
 
-	/* image->palette = CALLOC(uint8_t, 256 * 3); */
+		if (status == GIF_LIB_ERROR)
+			break;
+
+	}
+
+	/* this might not be the right place to be reading this */
+	if (gif->Image.ColorMap != NULL)
+		convert_gif_palette(image, gif->Image.ColorMap);
+	else
+		convert_gif_palette(image, gif->SColorMap);
 
 	return status;
 }
 
-int open_handler(FILE* output, GifFileType** gif)
+int gif_read(image_t* image, FILE* input)
 {
-	int fn = fileno(output);
+	int status = GIF_NO_ERROR;
+	GifFileType* gif = NULL;
+	image->flags = 0;
+
+	if ((status = open_dhandler(input, &gif)));
+	else if ((status = read_records(image, gif)));
+
+	if (gif)
+		DGifCloseFile(gif);
+
+	return status;
+}
+
+static int open_ehandler(FILE* file, GifFileType** gif)
+{
+	int fn = fileno(file);
 	if ((*gif = EGifOpenFileHandle(fn)) == NULL)
 		return GIF_LIB_ERROR;
 	return GIF_NO_ERROR;
 }
 
-int make_palette(image_t* image, ColorMapObject** gif_palette)
+static int make_palette(image_t* image, ColorMapObject** gif_palette)
 {
 	int i;
 
 	GifColorType colors[256];
-	
+
 	for (i = 0; i < 256; i++) {
 		colors[i].Red = image->palette[i * 3 + 0];
 		colors[i].Green = image->palette[i * 3 + 1];
@@ -56,7 +181,8 @@ int make_palette(image_t* image, ColorMapObject** gif_palette)
 	return GIF_NO_ERROR;
 }
 
-int write_data(image_t* image, GifFileType* gif, ColorMapObject* gif_palette)
+static int write_data(image_t* image, GifFileType* gif,
+		ColorMapObject* gif_palette)
 {
 	int i;
 
@@ -64,8 +190,12 @@ int write_data(image_t* image, GifFileType* gif, ColorMapObject* gif_palette)
 	256, 0, gif_palette) == GIF_ERROR)
 		return GIF_LIB_ERROR;
 
-	if (EGifPutExtension(gif, GCE_ID, GCE_LENGTH, gce_data) == GIF_ERROR)
-		return GIF_LIB_ERROR;
+	if (image->flags && IMAGE_TRANSPARENT) {
+		gce_data[2] = image->trans_key;
+		if (EGifPutExtension(gif,
+		GCE_ID, GCE_LENGTH, gce_data) == GIF_ERROR)
+			return GIF_LIB_ERROR;
+	}
 
 	if (EGifPutImageDesc(gif, 0, 0,
 	image->width, image->height, FALSE, NULL) == GIF_ERROR)
@@ -89,7 +219,7 @@ int gif_write(image_t* image, FILE* output)
 	GifFileType* gif = NULL;
 	ColorMapObject* gif_palette = NULL;
 
-	if ((status = open_handler(output, &gif)));
+	if ((status = open_ehandler(output, &gif)));
 	else if ((status = make_palette(image, &gif_palette)));
 	else if ((status = write_data(image, gif, gif_palette)));
 

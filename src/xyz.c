@@ -71,6 +71,10 @@ static int read_pixels(image_t* image, uchar* data, ulong length)
 	image->pixels = CALLOC(uint8_t, length - palette_size);
 	for (i = 0; i < pixel_size; i++)
 		image->pixels[i] = data[i + palette_size];
+
+	image->flags |= IMAGE_TRANSPARENT;
+	image->trans_key = 0;
+
 	return XYZ_NO_ERROR;
 }
 
@@ -97,6 +101,33 @@ static int write_header(image_t* image, FILE* output)
 	return XYZ_NO_ERROR;
 }
 
+/* I know this is gross and in the wrong place - FIXME later. */
+static void reorder_palette(image_t* image)
+{
+	int i;
+	int area = image->width * image->height;
+	uint8_t temp[3];
+	temp[0] = image->palette[0];
+	temp[1] = image->palette[1];
+	temp[2] = image->palette[2];
+	image->palette[0] = image->palette[image->trans_key * 3 + 0];
+	image->palette[1] = image->palette[image->trans_key * 3 + 1];
+	image->palette[2] = image->palette[image->trans_key * 3 + 2];
+	image->palette[image->trans_key * 3 + 0] = temp[0];
+	image->palette[image->trans_key * 3 + 1] = temp[1];
+	image->palette[image->trans_key * 3 + 2] = temp[2];
+
+	for (i = 0; i < area; i++) {
+		uint8_t* pixel = &image->pixels[i];
+		if (*pixel == 0)
+			*pixel = image->trans_key;
+		else if (*pixel == image->trans_key)
+			*pixel = 0;
+	}
+
+	image->trans_key = 0;
+}
+
 static int write_data(image_t* image, FILE* output)
 {
 	int status;
@@ -106,6 +137,9 @@ static int write_data(image_t* image, FILE* output)
 
 	uchar* data = CALLOC(uchar, total_size);
 	uchar* compressed = CALLOC(uchar, length);
+
+	if (image->flags & IMAGE_TRANSPARENT)
+		reorder_palette(image);
 
 	memcpy(data, image->palette, PALETTE_SIZE);
 	memcpy(data + PALETTE_SIZE, image->pixels, pixel_size);

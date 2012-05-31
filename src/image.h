@@ -5,6 +5,10 @@
 
 #include <stdint.h>
 
+enum image_flag {
+	IMAGE_TRANSPARENT = 0x01
+};
+
 typedef struct image_s {
 	uint16_t width;
 	uint16_t height;
@@ -14,6 +18,12 @@ typedef struct image_s {
 
 	/* width * height in size */
 	uint8_t* pixels;
+
+	/* bitmask. mostly unused. see image_flag for values */
+	uint8_t flags;
+
+	/* which palette color to replace with transparency */
+	uint8_t trans_key;
 } image_t;
 
 #endif
