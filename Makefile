@@ -13,14 +13,10 @@ OBJS = $(FILES:%=bin/%.o)
 DEBUG_FOOTPRINT = bin/_debug
 RELEASE_FOOTPRINT = bin/_release
 
-.PHONY: all
-all: release
+.PHONY: all debug clean install
 
-.PHONY: release
-#release: CFLAGS += -O3
-release: $(RELEASE_FOOTPRINT) $(PROGRAM)
+all: $(RELEASE_FOOTPRINT) $(PROGRAM)
 
-.PHONY: debug
 debug: CFLAGS += -O0 -g
 debug: LDFLAGS += -g
 debug: $(DEBUG_FOOTPRINT) $(PROGRAM)
@@ -39,11 +35,9 @@ $(PROGRAM): $(OBJS)
 bin/%.o: src/%.c src/%.h
 	$(CC) -o $@ $(CFLAGS) -c $<
 
-.PHONY: clean
 clean:
 	-rm -f $(PROGRAM) $(OBJS) $(RELEASE_FOOTPRINT) $(DEBUG_FOOTPRINT)
 
-.PHONY: install
 install: all
 	cp $(PROGRAM) $(PREFIX)/bin
 
