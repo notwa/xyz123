@@ -16,7 +16,8 @@ enum {
 static buffs_t* input;
 static buffs_t* output;
 
-static list_t* inputs = NULL;
+static node_t* inputs_head = NULL;
+static node_t* inputs_tail = NULL;
 static char* desired_output_path = NULL;
 static char force_gif = 0;
 static char silent = 0;
@@ -42,7 +43,9 @@ adopt an output path with the appropriate extension.");
 
 static void set_input(char* arg)
 {
-	list_push_back(inputs, arg);
+	inputs_tail = node_push_tail(inputs_tail, arg);
+	if (inputs_head == NULL)
+		inputs_head = inputs_tail;
 }
 
 static void set_output(char* arg)
@@ -75,7 +78,8 @@ args_switch_t s = {
 
 static void setup_switches()
 {
-	inputs = new_list();
+	inputs_head = NULL;
+	inputs_tail = NULL;
 	args_push_switch(&h);
 	args_push_switch(&o);
 	args_push_switch(&b);
@@ -201,7 +205,8 @@ static void convert(char* input_path)
 static void convert_inputs()
 {
 	char* input_path;
-	int input_count = list_size(inputs);
+	node_t* inputs = inputs_head;
+	int input_count = node_find_size(inputs);
 
 	if (input_count == 0) {
 		args_print_usage();
@@ -219,13 +224,11 @@ static void convert_inputs()
 	input = new_buffs(BUFFER_SIZE);
 	output = new_buffs(BUFFER_SIZE);
 
-	input_path = (char*) list_pop_front(inputs);
-	while (input_path != NULL) {
+	while (node_iterate(&inputs, (void**) &input_path))
 		convert(input_path);
-		input_path = (char*) list_pop_front(inputs);
-	}
 
-	free(inputs);
+	node_clear(inputs_head);
+	inputs_tail = NULL;
 	free_buffs(input);
 	free_buffs(output);
 }

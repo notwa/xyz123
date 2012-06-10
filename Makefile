@@ -1,5 +1,5 @@
 NAME = xyz123
-FILES = main args xyz buffs gif macros list
+FILES = main args xyz buffs gif macros node
 
 CC ?= gcc
 CFLAGS += -pedantic -Wall -Werror

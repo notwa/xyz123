@@ -3,6 +3,6 @@
 #include "buffs.h"
 #include "gif.h"
 #include "image.h"
-#include "list.h"
+#include "node.h"
 #include "xyz.h"
 
