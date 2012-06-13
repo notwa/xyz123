@@ -27,7 +27,7 @@ void (*args_fallback_handler)(char* arg) = default_fallback;
 
 void args_push_switch(args_switch_t* switch_)
 {
-	node_push_tail(switches, switch_);
+	switches = node_append(switches, switch_);
 }
 
 static char is_blank(char* s)
@@ -76,7 +76,7 @@ void args_print_help()
 
 static void check_bounds()
 {
-	if (args->contents != NULL)
+	if (args != NULL)
 		return;
 
 	args_print_usage();
@@ -127,18 +127,19 @@ static char* poll_for_switch()
 	return short_switch;
 }
 
-static void find_switch(node_t** iter, char* name)
+static args_switch_t* find_switch(node_t* iter, char* name)
 {
 	static char short_switch[3] = "--";
-	args_switch_t* switch_;
-	while (node_iterate(iter, (void**) &switch_)) {
+	args_switch_t* switch_ = NULL;
+	while (node_iterate(&iter, (void**) &switch_)) {
 		short_switch[1] = switch_->shortname;
 		if (!strcmp(short_switch, name))
-			break;
+			return switch_;
 		if (!is_blank(switch_->longname)
 		&& !strcmp(switch_->longname, name))
-			break;
+			return switch_;
 	}
+	return NULL;
 }
 
 static void fill_args(int argc, char* argv[])
@@ -157,20 +158,19 @@ void args_handle(int argc, char* argv[])
 
 	args_program_name = args_poll();
 
+	switches = node_find_head(switches);
 	while (args != NULL) {
-		node_t* iter = switches;
+		args_switch_t* switch_;
 		char* name;
 
 		name = poll_for_switch();
 		previous_switch_name = name;
 
-		find_switch(&iter, name);
-		if (iter == NULL) {
+		switch_ = find_switch(switches, name);
+		if (switch_ == NULL) {
 			args_fallback_handler(name);
-		} else {
-			args_switch_t* switch_ = iter->contents;
-			if (switch_->function)
-				switch_->function(name);
+		} else if (switch_->function) {
+			switch_->function(name);
 		}
 	}
 }

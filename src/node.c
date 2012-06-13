@@ -23,9 +23,11 @@ node_t* node_new(node_t* prev, node_t* next, void* contents)
 	return node;
 }
 
-void free_node(node_t* node)
+void* node_free(node_t* node)
 {
+	void* contents = node->contents;
 	free(node);
+	return contents;
 }
 
 void node_free_contents(node_t* node)
@@ -109,24 +111,26 @@ void* node_unlink(node_t* node)
 	return contents;
 }
 
-char node_iterate(node_t** node, void** contents)
+node_t* node_iterate(node_t** node, void** contents)
 {
-	if (*node == NULL)
-		return 0;
+	node_t* former = *node;
+	if (former == NULL)
+		return NULL;
 	if (contents != NULL)
 		*contents = (*node)->contents;
-	*node = (*node)->next;
-	return 1;
+	*node = former->next;
+	return former;
 }
 
-char node_retract(node_t** node, void** contents)
+node_t* node_retract(node_t** node, void** contents)
 {
-	if (*node == NULL)
-		return 0;
+	node_t* former = *node;
+	if (former == NULL)
+		return NULL;
 	if (contents != NULL)
 		*contents = (*node)->contents;
-	*node = (*node)->next;
-	return 1;
+	*node = former->prev;
+	return former;
 }
 
 node_t* node_find_head(node_t* starting_node)
@@ -177,23 +181,26 @@ node_t* node_pop_tail(node_t* starting_node)
 
 uint node_find_size(node_t* starting_node)
 {
-	uint size = 0;
+	uint size = 1;
 	node_t* node;
 
-	node = starting_node;
+	if (starting_node == NULL)
+		return 0;
+
+	node = starting_node->next;
 	while (node != NULL) {
-		size++;
 		node = node->next;
 		if (node == starting_node)
 			break;
+		size++;
 	}
 
-	node = starting_node;
+	node = starting_node->prev;
 	while (node != NULL) {
-		size++;
 		node = node->prev;
 		if (node == starting_node)
 			break;
+		size++;
 	}
 
 	return size;

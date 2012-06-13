@@ -52,8 +52,8 @@ node_t* node_prepend(node_t* node, void* new_contents);
 void* node_unlink(node_t* node);
 
 /* TODO: describe me */
-char node_iterate(node_t** node, void** contents);
-char node_retract(node_t** node, void** contents);
+node_t* node_iterate(node_t** node, void** contents);
+node_t* node_retract(node_t** node, void** contents);
 
 /* Returns the head/tail of a list, or
  * NULL when a circular loop is detected. */
