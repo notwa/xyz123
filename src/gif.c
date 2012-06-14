@@ -4,13 +4,15 @@
  * This program is licensed under the terms of the GNU General Public
  * License (version 3), and is distributed without any warranty.
  * You should have received a copy of the license in the file COPYING.
- * If not, visit http://gnu.org/licenses/ to obtain one.
+ * If not, visit <http://gnu.org/licenses/> to obtain one.
  */
 
 /* This is loosely based on code by Hari Nair. Specifically,
  * <http://cpansearch.perl.org/src/DHUNT/PDL-Planet-0.12/libimage/gif.c>
  */
 
+#include "macros.h"
+#include "image.h"
 #include "gif.h"
 
 #include <gif_lib.h>

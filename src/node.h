@@ -4,13 +4,8 @@
  * This program is licensed under the terms of the GNU General Public
  * License (version 3), and is distributed without any warranty.
  * You should have received a copy of the license in the file COPYING.
- * If not, visit http://gnu.org/licenses/ to obtain one.
+ * If not, visit <http://gnu.org/licenses/> to obtain one.
  */
-
-#ifndef NODE_H_
-#define NODE_H_
-
-#include "macros.h"
 
 typedef struct node_s node_t;
 
@@ -82,6 +77,4 @@ uint node_find_size(node_t* starting_node);
  * You shouldn't need to use this unless you've been
  * manually toying around with nodes. */
 node_t* node_validate(node_t* node);
-
-#endif
 

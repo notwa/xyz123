@@ -4,14 +4,8 @@
  * This program is licensed under the terms of the GNU General Public
  * License (version 3), and is distributed without any warranty.
  * You should have received a copy of the license in the file COPYING.
- * If not, visit http://gnu.org/licenses/ to obtain one.
+ * If not, visit <http://gnu.org/licenses/> to obtain one.
  */
-
-#ifndef ARGS_H_
-#define ARGS_H_
-
-#include "macros.h"
-#include "node.h"
 
 /* TODO: rewrite definitions */
 
@@ -69,6 +63,4 @@ void args_reset();
 /* Exactly as they sound. */
 void args_print_help();
 void args_print_switches();
-
-#endif
 

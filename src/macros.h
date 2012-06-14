@@ -4,16 +4,13 @@
  * This program is licensed under the terms of the GNU General Public
  * License (version 3), and is distributed without any warranty.
  * You should have received a copy of the license in the file COPYING.
- * If not, visit http://gnu.org/licenses/ to obtain one.
+ * If not, visit <http://gnu.org/licenses/> to obtain one.
  */
 
-#ifndef MACROS_H_
-#define MACROS_H_
-
-#define _POSIX_SOURCE /* for fileno */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 typedef unsigned char uchar;
 typedef unsigned short ushort;
@@ -37,6 +34,4 @@ void* safe_realloc(void* ptr, size_t size);
 #define REALLOC(type, ptr, count) (\
 (type*) safe_realloc((ptr), sizeof(type) * (count))\
 )
-
-#endif
 

@@ -1,5 +1,6 @@
 NAME = xyz123
 FILES = main args xyz buffs gif macros node
+.PHONY: src/main.h
 
 CC ?= gcc
 CFLAGS += -pedantic -Wall -Werror

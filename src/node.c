@@ -4,9 +4,10 @@
  * This program is licensed under the terms of the GNU General Public
  * License (version 3), and is distributed without any warranty.
  * You should have received a copy of the license in the file COPYING.
- * If not, visit http://gnu.org/licenses/ to obtain one.
+ * If not, visit <http://gnu.org/licenses/> to obtain one.
  */
 
+#include "macros.h"
 #include "node.h"
 
 node_t* node_new_null()

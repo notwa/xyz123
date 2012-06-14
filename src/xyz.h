@@ -4,14 +4,8 @@
  * This program is licensed under the terms of the GNU General Public
  * License (version 3), and is distributed without any warranty.
  * You should have received a copy of the license in the file COPYING.
- * If not, visit http://gnu.org/licenses/ to obtain one.
+ * If not, visit <http://gnu.org/licenses/> to obtain one.
  */
-
-#ifndef XYZ_H_
-#define XYZ_H_
-
-#include "macros.h"
-#include "image.h"
 
 enum xyz_errors {
 	XYZ_NO_ERROR,
@@ -23,6 +17,4 @@ enum xyz_errors {
 /* returns non-zero on error */
 int xyz_read(image_t* image, FILE* input);
 int xyz_write(image_t* image, FILE* output);
-
-#endif
 

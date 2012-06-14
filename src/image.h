@@ -1,10 +1,5 @@
 /* image.h - generic 256-color image */
 
-#ifndef IMAGE_H_
-#define IMAGE_H_
-
-#include <stdint.h>
-
 enum image_flag {
 	IMAGE_TRANSPARENT = 0x01
 };
@@ -25,6 +20,4 @@ typedef struct image_s {
 	/* which palette color to replace with transparency */
 	uint8_t trans_key;
 } image_t;
-
-#endif
 
