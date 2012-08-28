@@ -10,11 +10,14 @@
  * <http://cpansearch.perl.org/src/DHUNT/PDL-Planet-0.12/libimage/gif.c>
  */
 
-#include "macros.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "gif_lib.h"
+
+#include "unsigned.h"
 #include "image.h"
 #include "gif.h"
-
-#include <gif_lib.h>
 
 enum {
 	GCE_ID = 0xF9,
@@ -49,7 +52,7 @@ static int read_desc(image_t* image, GifFileType* gif)
 	image->height = gif->Image.Height;
 	area = image->width * image->height;
 
-	image->pixels = CALLOC(uint8_t, area);
+	image->pixels = calloc(1, area);
 
 	if (gif->Image.Interlace) /* TODO */
 		return GIF_LIB_ERROR;
@@ -104,7 +107,7 @@ static void convert_gif_palette(image_t* image, ColorMapObject* gif_palette)
 {
 	int i;
 
-	image->palette = CALLOC(uint8_t, 256 * 3);
+	image->palette = calloc(1, 256 * 3);
 
 	for (i = 0; i < gif_palette->ColorCount; i++) {
 		GifColorType* color = &gif_palette->Colors[i];

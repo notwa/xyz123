@@ -6,11 +6,16 @@
  * copy of the license along with this program; see the file LICENSE.
  */
 
-#include "macros.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "zlib.h"
+
+#include "unsigned.h"
+#include "futil.h"
 #include "image.h"
 #include "xyz.h"
-
-#include <zlib.h>
 
 enum {
 	HEADER_SIZE = 8,
@@ -21,8 +26,8 @@ static int decompress(FILE* input, uchar** data, ulong* length)
 {
 	int status;
 	ulong filesize = fsize(input) - HEADER_SIZE;
-	uchar* compressed = CALLOC(uchar, filesize);
-	uchar* decompressed = CALLOC(uchar, *length);
+	uchar* compressed = calloc(1, filesize);
+	uchar* decompressed = calloc(1, *length);
 
 	fread(compressed, filesize, sizeof(uchar), input);
 	status = uncompress((Bytef*) decompressed, length,
@@ -65,11 +70,11 @@ static int read_pixels(image_t* image, uchar* data, ulong length)
 	if (palette_size % 256 || palette_size / 256 != 3)
 		return XYZ_FORMATTING_ERROR;
 
-	image->palette = CALLOC(uint8_t, palette_size);
+	image->palette = calloc(1, palette_size);
 	for (i = 0; i < palette_size; i++)
 		image->palette[i] = data[i];
 
-	image->pixels = CALLOC(uint8_t, length - palette_size);
+	image->pixels = calloc(1, length - palette_size);
 	for (i = 0; i < pixel_size; i++)
 		image->pixels[i] = data[i + palette_size];
 
@@ -136,8 +141,8 @@ static int write_data(image_t* image, FILE* output)
 	int total_size = PALETTE_SIZE + pixel_size;
 	ulong length = PALETTE_SIZE + pixel_size;
 
-	uchar* data = CALLOC(uchar, total_size);
-	uchar* compressed = CALLOC(uchar, length);
+	uchar* data = calloc(1, total_size);
+	uchar* compressed = calloc(1, length);
 
 	if (image->flags & IMAGE_TRANSPARENT)
 		reorder_palette(image);

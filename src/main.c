@@ -6,7 +6,12 @@
  * copy of the license along with this program; see the file LICENSE.
  */
 
-#include "macros.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "unsigned.h"
 #include "node.h"
 #include "args.h"
 #include "image.h"
@@ -114,7 +119,7 @@ static char* generate_path(char* input_path, char is_gif)
 
 	/* allocate with room for extension */
 	length = strlen(input_path) + 5;
-	path = CALLOC(char, length);
+	path = calloc(1, length);
 
 	strcpy(path, input_path);
 

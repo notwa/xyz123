@@ -6,7 +6,10 @@
  * copy of the license along with this program; see the file LICENSE.
  */
 
-#include "macros.h"
+#include <stddef.h>
+#include <stdlib.h>
+
+#include "unsigned.h"
 #include "node.h"
 
 node_t* node_new_null()
@@ -16,7 +19,7 @@ node_t* node_new_null()
 
 node_t* node_new(node_t* prev, node_t* next, void* contents)
 {
-	node_t* node = ALLOC(node_t);
+	node_t* node = malloc(sizeof(node_t));
 	node->prev = prev;
 	node->next = next;
 	node->contents = contents;
