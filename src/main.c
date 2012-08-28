@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "unsigned.h"
 #include "node.h"
@@ -44,6 +45,16 @@ If an output path isn't specified, each input will\n\
 adopt an output path with the appropriate extension.\n\
 ";
 
+/* via suckless.org */
+static void die(const char *errstr, ...)
+{
+	va_list ap;
+	va_start(ap, errstr);
+	vfprintf(stderr, errstr, ap);
+	va_end(ap);
+	exit(EXIT_FAILURE);
+}
+
 static void handle_flag(char flag, char *(*nextarg)())
 {
 	char *next;
@@ -63,8 +74,7 @@ static void handle_flag(char flag, char *(*nextarg)())
 		desired_output_path = next;
 		break;
 	default:
-		fprintf(stderr, "Unknown flag: -%c\n", flag);
-		exit(EXIT_FAILURE);
+		die("Unknown flag: -%c\n", flag);
 	}
 }
 
@@ -168,33 +178,27 @@ static int write_image(image_t* image, char* output_path, char is_gif)
 	return status;
 }
 
-static void convert(char* input_path)
+static int convert(char* input_path)
 {
 	image_t image;
 	char is_gif = check_if_gif(input_path);
 	char* output_path;
-	int status = 0;
+	int status = read_image(&image, input_path, is_gif);
 
-	if ((status = read_image(&image, input_path, is_gif))) {
-		fprintf(stderr, "Couldn't read %s: %i\n",
-			input_path, status);
-		return;
-	}
+	if (status)
+		return status;
 
 	output_path = generate_path(input_path, is_gif);
 
-	if ((status = write_image(&image, output_path, is_gif))) {
-		fprintf(stderr, "Couldn't write %s: %i\n",
-			output_path, status);
-	} else {
-		if (!silent)
-			puts(output_path);
-	}
+	status = write_image(&image, output_path, is_gif);
+	if (status && !silent)
+		puts(output_path);
 
 	free(image.palette);
 	free(image.pixels);
 	if (desired_output_path == NULL)
 		free(output_path);
+	return status;
 }
 
 static void convert_inputs()
@@ -203,19 +207,17 @@ static void convert_inputs()
 	node_t* inputs = inputs_head;
 	int input_count = node_find_size(inputs);
 
-	if (input_count == 0) {
-		fprintf(stderr, "An input must be specified."
-			" Try -h for information.\n");
-		exit(EXIT_FAILURE);
-	}
-	if (desired_output_path != NULL && input_count > 1) {
-		fprintf(stderr, "An output cannot be specified"
-			" with multiple inputs.\n");
-		exit(EXIT_FAILURE);
-	}
+	if (input_count == 0)
+		die("An input must be specified. Try -h for information.\n");
+	if (desired_output_path != NULL && input_count > 1)
+		die("An output cannot be specified with multiple inputs.\n");
 
-	while (node_iterate(&inputs, (void**) &input_path))
-		convert(input_path);
+	while (node_iterate(&inputs, (void**) &input_path)) {
+		int status = convert(input_path);
+		if (status)
+			fprintf(stderr, "Couldn't convert %s: %i\n",
+			    input_path, status);
+	}
 
 	node_clear(inputs_head);
 	inputs_tail = NULL;
