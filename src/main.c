@@ -27,70 +27,48 @@ static char* desired_output_path = NULL;
 static char force_gif = 0;
 static char silent = 0;
 
-void args_print_info()
-{
-	puts("xyz123 - xyz to gif image converter");
-}
-
-void args_print_usage()
-{
-	printf("Usage: %s FILE... [-g] [-o FILE]\n",
-		args_program_name);
-}
-
-void args_print_help_suffix()
-{
-	puts("\n\
+static const char help1[] = "\
+xyz123 - xyz to gif image converter\n\
+\n\
+  <files...>        open files as inputs\n\
+  -h                display this text\n\
+  -s                don't print output filenames\n\
+  -g                force inputs to be treated as gifs\n\
+  -o                write to FILE\n\
+\n\
+";
+static const char help2[] = "\
 FILE may be '-' to specify stdin/stdout.\n\
 If an output path isn't specified, each input will\n\
-adopt an output path with the appropriate extension.");
+adopt an output path with the appropriate extension.\n\
+";
+
+static void handle_flag(char flag, char *(*nextarg)())
+{
+	char *next;
+	switch (flag) {
+	case 'h':
+		printf(help1);
+		printf(help2);
+		exit(0);
+	case 'g':
+		force_gif = 1;
+		return;
+	case 's':
+		silent = 1;
+		return;
+	case 'o':
+		next = nextarg();
+		desired_output_path = next;
+		break;
+	}
 }
 
-static void set_input(char* arg)
+static void add_input(char *arg)
 {
 	inputs_tail = node_push_tail(inputs_tail, arg);
 	if (inputs_head == NULL)
 		inputs_head = inputs_tail;
-}
-
-static void set_output(char* arg)
-{
-	desired_output_path = args_poll();
-}
-
-static void set_gif(char* arg)
-{
-	force_gif = 1;
-}
-
-static void set_silent(char* arg)
-{
-	silent = 1;
-}
-
-args_switch_t h = {
-	'h',"--help","          display this text",
-	args_print_help };
-args_switch_t o = {
-	'o',"--output","FILE    write to FILE",
-	set_output };
-args_switch_t b = {
-	'g',"--gif","           force inputs to be treated as gifs",
-	set_gif };
-args_switch_t s = {
-	's',"--silent","        don't print output filenames",
-	set_silent };
-
-static void setup_switches()
-{
-	inputs_head = NULL;
-	inputs_tail = NULL;
-	args_push_switch(&h);
-	args_push_switch(&o);
-	args_push_switch(&b);
-	args_push_switch(&s);
-
-	args_fallback_handler = set_input;
 }
 
 static char* find_last_slash(char* path)
@@ -214,13 +192,11 @@ static void convert_inputs()
 	int input_count = node_find_size(inputs);
 
 	if (input_count == 0) {
-		args_print_usage();
 		fprintf(stderr, "An input must be specified."
 			" Try --help for information.\n");
 		exit(1);
 	}
 	if (desired_output_path != NULL && input_count > 1) {
-		args_print_usage();
 		fprintf(stderr, "An output cannot be specified"
 			" with multiple inputs.\n");
 		exit(1);
@@ -240,8 +216,7 @@ static void convert_inputs()
 
 int main(int argc, char** argv)
 {
-	setup_switches();
-	args_handle(argc, argv);
+	args_parse(argc, argv, handle_flag, add_input);
 	convert_inputs();
 
 	return 0;
