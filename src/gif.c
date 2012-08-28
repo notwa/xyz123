@@ -1,10 +1,9 @@
-/* gif.h - gif image format conversion
+/* gif.c - gif image format conversion
  * Copyright (C) 2012 Connor Olding
  *
- * This program is licensed under the terms of the GNU General Public
- * License (version 3), and is distributed without any warranty.
- * You should have received a copy of the license in the file COPYING.
- * If not, visit <http://gnu.org/licenses/> to obtain one.
+ * This program is licensed under the terms of the MIT License, and
+ * is distributed without any warranty.  You should have received a
+ * copy of the license along with this program; see the file LICENSE.
  */
 
 /* This is loosely based on code by Hari Nair. Specifically,
