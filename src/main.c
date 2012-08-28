@@ -62,6 +62,9 @@ static void handle_flag(char flag, char *(*nextarg)())
 		next = nextarg();
 		desired_output_path = next;
 		break;
+	default:
+		fprintf(stderr, "Unknown flag: -%c\n", flag);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -137,6 +140,10 @@ static int read_image(image_t* image, char* input_path, char is_gif)
 {
 	int status;
 	FILE *input = fopen(input_path, "r");
+	if (input == NULL) {
+		perror(input_path);
+		exit(EXIT_FAILURE);
+	}
 	if (is_gif)
 		status = gif_read(image, input);
 	else
@@ -149,6 +156,10 @@ static int write_image(image_t* image, char* output_path, char is_gif)
 {
 	int status;
 	FILE *output = fopen(output_path, "w");
+	if (output == NULL) {
+		perror(output_path);
+		exit(EXIT_FAILURE);
+	}
 	if (is_gif)
 		status = xyz_write(image, output);
 	else
@@ -194,13 +205,13 @@ static void convert_inputs()
 
 	if (input_count == 0) {
 		fprintf(stderr, "An input must be specified."
-			" Try --help for information.\n");
-		exit(1);
+			" Try -h for information.\n");
+		exit(EXIT_FAILURE);
 	}
 	if (desired_output_path != NULL && input_count > 1) {
 		fprintf(stderr, "An output cannot be specified"
 			" with multiple inputs.\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	while (node_iterate(&inputs, (void**) &input_path))
