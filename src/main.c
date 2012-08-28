@@ -17,6 +17,7 @@
 #include "image.h"
 #include "gif.h"
 #include "xyz.h"
+#include "util.h"
 
 typedef struct string_node_s string_node;
 struct string_node_s {
@@ -45,16 +46,6 @@ FILE may be '-' to specify stdin/stdout.\n\
 If an output path isn't specified, each input will\n\
 adopt an output path with the appropriate extension.\n\
 ";
-
-/* via suckless.org */
-static void die(const char *errstr, ...)
-{
-	va_list ap;
-	va_start(ap, errstr);
-	vfprintf(stderr, errstr, ap);
-	va_end(ap);
-	exit(EXIT_FAILURE);
-}
 
 static char *check_next(char flag, char *next) {
 	if (!next)
@@ -88,9 +79,7 @@ static void handle_flag(char flag, char *(*nextarg)())
 static void add_input(char *arg)
 {
 	static string_node *last = NULL;
-	string_node *n = calloc(1, sizeof(string_node));
-	if (!n)
-		die("failed to calloc string_node\n");
+	string_node *n = callocs(sizeof(string_node));
 
 	n->s = arg;
 	inputs++;
@@ -149,7 +138,7 @@ static char* generate_path(char* input_path, char is_gif)
 
 	/* allocate with room for extension */
 	length = strlen(input_path) + 5;
-	path = calloc(1, length);
+	path = callocs(length);
 
 	strcpy(path, input_path);
 
