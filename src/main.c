@@ -7,7 +7,6 @@
  */
 
 #include "macros.h"
-#include "buffs.h"
 #include "node.h"
 #include "args.h"
 #include "image.h"
@@ -17,9 +16,6 @@
 enum {
 	BUFFER_SIZE = 16 * 1024
 };
-
-static buffs_t* input;
-static buffs_t* output;
 
 static node_t* inputs_head = NULL;
 static node_t* inputs_tail = NULL;
@@ -135,24 +131,24 @@ static char* generate_path(char* input_path, char is_gif)
 static int read_image(image_t* image, char* input_path, char is_gif)
 {
 	int status;
-	buffs_open_input(input, input_path);
+	FILE *input = fopen(input_path, "r");
 	if (is_gif)
-		status = gif_read(image, input->stream);
+		status = gif_read(image, input);
 	else
-		status = xyz_read(image, input->stream);
-	buffs_close(input);
+		status = xyz_read(image, input);
+	fclose(input);
 	return status;
 }
 
 static int write_image(image_t* image, char* output_path, char is_gif)
 {
 	int status;
-	buffs_open_output(output, output_path);
+	FILE *output = fopen(output_path, "w");
 	if (is_gif)
-		status = xyz_write(image, output->stream);
+		status = xyz_write(image, output);
 	else
-		status = gif_write(image, output->stream);
-	buffs_close(output);
+		status = gif_write(image, output);
+	fclose(output);
 	return status;
 }
 
@@ -202,16 +198,11 @@ static void convert_inputs()
 		exit(1);
 	}
 
-	input = new_buffs(BUFFER_SIZE);
-	output = new_buffs(BUFFER_SIZE);
-
 	while (node_iterate(&inputs, (void**) &input_path))
 		convert(input_path);
 
 	node_clear(inputs_head);
 	inputs_tail = NULL;
-	free_buffs(input);
-	free_buffs(output);
 }
 
 int main(int argc, char** argv)

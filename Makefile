@@ -1,5 +1,5 @@
 NAME = xyz123
-FILES = main args xyz buffs gif macros node
+FILES = main args xyz gif macros node
 .PHONY: src/main.h
 
 CC ?= gcc

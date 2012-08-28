@@ -1,4 +1,4 @@
-add_executable(xyz123 main.c args.c buffs.c gif.c node.c macros.c xyz.c)
+add_executable(xyz123 main.c args.c gif.c node.c macros.c xyz.c)
 
 find_package(ZLIB REQUIRED)
 find_package(GIF REQUIRED)
