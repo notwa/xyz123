@@ -13,18 +13,19 @@
 #include <stdarg.h>
 
 #include "unsigned.h"
-#include "node.h"
 #include "args.h"
 #include "image.h"
 #include "gif.h"
 #include "xyz.h"
 
-enum {
-	BUFFER_SIZE = 16 * 1024
+typedef struct string_node_s string_node;
+struct string_node_s {
+	char *s;
+	string_node *next;
 };
 
-static node_t* inputs_head = NULL;
-static node_t* inputs_tail = NULL;
+static string_node *input_node = NULL;
+static int inputs = 0;
 static char* desired_output_path = NULL;
 static char force_gif = 0;
 static char silent = 0;
@@ -86,9 +87,19 @@ static void handle_flag(char flag, char *(*nextarg)())
 
 static void add_input(char *arg)
 {
-	inputs_tail = node_push_tail(inputs_tail, arg);
-	if (inputs_head == NULL)
-		inputs_head = inputs_tail;
+	static string_node *last = NULL;
+	string_node *n = calloc(1, sizeof(string_node));
+	if (!n)
+		die("failed to calloc string_node\n");
+
+	n->s = arg;
+	inputs++;
+
+	if (!input_node)
+		input_node = n;
+	else
+		last->next = n;
+	last = n;
 }
 
 static char* find_last_slash(char* path)
@@ -197,7 +208,7 @@ static int convert(char* input_path)
 	output_path = generate_path(input_path, is_gif);
 
 	status = write_image(&image, output_path, is_gif);
-	if (status && !silent)
+	if (!status && !silent)
 		puts(output_path);
 
 	free(image.palette);
@@ -209,24 +220,20 @@ static int convert(char* input_path)
 
 static void convert_inputs()
 {
-	char* input_path;
-	node_t* inputs = inputs_head;
-	int input_count = node_find_size(inputs);
+	string_node *n;
 
-	if (input_count == 0)
+	if (inputs == 0)
 		die("An input must be specified. Try -h for information.\n");
-	if (desired_output_path != NULL && input_count > 1)
+	if (desired_output_path != NULL && inputs > 1)
 		die("An output cannot be specified with multiple inputs.\n");
 
-	while (node_iterate(&inputs, (void**) &input_path)) {
-		int status = convert(input_path);
+	for (n = input_node; n; n = n->next) {
+		int status = convert(n->s);
 		if (status)
 			fprintf(stderr, "Couldn't convert %s: %i\n",
-			    input_path, status);
+			    n->s, status);
+		free(n);
 	}
-
-	node_clear(inputs_head);
-	inputs_tail = NULL;
 }
 
 int main(int argc, char** argv)
