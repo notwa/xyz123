@@ -55,6 +55,12 @@ static void die(const char *errstr, ...)
 	exit(EXIT_FAILURE);
 }
 
+static char *check_next(char flag, char *next) {
+	if (!next)
+		die("-%c requires another argument\n", flag);
+	return next;
+}
+
 static void handle_flag(char flag, char *(*nextarg)())
 {
 	char *next;
@@ -70,7 +76,7 @@ static void handle_flag(char flag, char *(*nextarg)())
 		silent = 1;
 		return;
 	case 'o':
-		next = nextarg();
+		next = check_next(flag, nextarg());
 		desired_output_path = next;
 		break;
 	default:
